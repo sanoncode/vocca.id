@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import SocialAuthButtons from "./social-auth-buttons";
+import Separator from "./separator";
 
 export function LoginForm({
   className,
@@ -57,6 +59,8 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <SocialAuthButtons />
+          <Separator />
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
@@ -100,6 +104,14 @@ export function LoginForm({
                 className="underline underline-offset-4"
               >
                 Sign up
+              </Link>
+            </div>
+            <div className="mt-4 text-center text-sm">
+              Back to <Link
+                href="/"
+                className="underline underline-offset-4"
+              >
+                Home
               </Link>
             </div>
           </form>
