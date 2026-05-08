@@ -19,6 +19,12 @@ const providers: providerTypes[] = [
     icon: "/google.svg",
     size: 30,
   },
+   {
+    name: "github",
+    label: "Continue with Github",
+    icon: "/github.svg",
+    size: 30,
+  },
 ];
 
 const SocialAuthButtons = () => {
@@ -33,7 +39,7 @@ const SocialAuthButtons = () => {
     });
   };
   return (
-    <div>
+    <div className="space-y-2">
       {providers.map((provider: providerTypes) => (
         <SocialAuthButton key={provider.name} action={() => handleOAuthLogin(provider.name)}>
           <Image
