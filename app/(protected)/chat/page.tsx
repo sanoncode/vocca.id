@@ -1,14 +1,8 @@
-import React from 'react'
+import ChatRoom from "@/components/chat/chat-room";
 
-const ChatPage = () => {
-  return (
-    <div>
-      Chatpage
-    </div>
-  )
-}
+const Page = () => <ChatRoom />
 
-export default ChatPage
+export default Page
 // async function UserDetails() {
 //   const supabase = await createClient();
 //   const { data, error } = await supabase.auth.getClaims();
