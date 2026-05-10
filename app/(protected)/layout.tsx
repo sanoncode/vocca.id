@@ -3,7 +3,7 @@ import SideBar from "@/components/chat/sidebar/side-bar";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-export default async function  ProtectedLayout  ({
+export default async function ProtectedLayout  ({
   children,
 }: {
   children: React.ReactNode;
@@ -28,21 +28,9 @@ export default async function  ProtectedLayout  ({
 
     {/* Main Content */}
     <section className="flex-1 relative">
-      <div className="h-full flex">
-
         {children}
-        {/* <div className="opacity-30">
-          <Image 
-          src={'/blank.svg'}
-          width={300}
-          height={300}
-          alt='blank'
-          loading="eager"
-          className="dark:invert"
-          />
-        </div> */}
-      </div>
-
+        {/* 
+        */}
     </section>
 
   </div>
