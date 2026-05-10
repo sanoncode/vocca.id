@@ -1,4 +1,5 @@
 import ChatRoom from "@/components/chat/chat-room";
+import { Suspense } from "react";
 
 
 async function Page({ params }: { params: Promise<{ id: string }> }) {
