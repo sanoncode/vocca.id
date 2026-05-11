@@ -1,12 +1,11 @@
 'use client'
 
-import React, { Suspense } from 'react'
+import React from 'react'
 import SideButton from './side-button'
 import Image from 'next/image'
 import { ThemeSwitcher } from '../../theme-switcher'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-
 
 type menu = {
     name: string,
@@ -77,7 +76,7 @@ const SideButtons = () => {
             </div>
             <div className="flex flex-col gap-4">
                 <ThemeSwitcher />
-                <Suspense>
+              
                     {BottomMenuButton.map((menu: menu) => (
                         <SideButton action={() => handleClick(menu.name)} key={menu.name}>
                             <Image
@@ -89,7 +88,7 @@ const SideButtons = () => {
                             />
                         </SideButton>
                     ))}
-                </Suspense>
+                
             </div>
         </>
     )
