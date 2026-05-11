@@ -1,44 +1,84 @@
-import { NextLogo } from "./next-logo";
-import { SupabaseLogo } from "./supabase-logo";
+import { Suspense } from "react";
+import GetStarted from "./get-started";
 
 export function Hero() {
   return (
-    <div className="flex flex-col gap-16 items-center">
-      <div className="flex gap-8 justify-center items-center">
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <SupabaseLogo />
-        </a>
-        <span className="border-l rotate-45 h-6" />
-        <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
-          <NextLogo />
-        </a>
+    <section>
+      <div className="mx-auto max-w-4xl px-4 sm:px-6  lg:px-8">
+        <div className="text-center">
+          {/* Badge */}
+          <span className="inline-flex items-center rounded-full border px-4 py-1 text-sm font-medium">
+            🌍 Breaking language barriers
+          </span>
+
+          {/* Headline */}
+          <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
+            Chat with anyone,
+            <span className="block mt-2">
+              in your own language 💬
+            </span>
+          </h1>
+
+          {/* Description */}
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 ">
+            translates every message in real time, so everyone
+            can chat naturally no matter what language they speak.
+          </p>
+
+          {/* CTA */}
+          <div className="mt-8 flex justify-center">
+            <Suspense>
+              <GetStarted />
+            </Suspense>
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div className="mx-auto mt-16 max-w-2xl space-y-6">
+          <div className="flex items-start gap-4 rounded-2xl border p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full  text-lg font-bold">
+              1
+            </div>
+            <div>
+              <h3 className="font-semibold ">
+                Create a room 🏠
+              </h3>
+              <p className="text-sm ">
+                Start a private chat room in seconds.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 rounded-2xl border p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full  text-lg font-bold">
+              2
+            </div>
+            <div>
+              <h3 className="font-semibold ">
+                Invite anyone 👥
+              </h3>
+              <p className="text-sm ">
+                Share your room link with friends, clients, or teammates.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 rounded-2xl border p-5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full  text-lg font-bold">
+              3
+            </div>
+            <div>
+              <h3 className="font-semibold ">
+                Chat instantly 🌐
+              </h3>
+              <p className="text-sm ">
+                Everyone writes in their own language and understands each other automatically.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
-      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
-      <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">
-        The fastest way to build apps with{" "}
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Supabase
-        </a>{" "}
-        and{" "}
-        <a
-          href="https://nextjs.org/"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Next.js
-        </a>
-      </p>
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
-    </div>
+    </section>
+
   );
 }

@@ -1,41 +1,36 @@
 import MenuSidebar from "@/components/chat/menu/menu-sidebar";
 import SideBar from "@/components/chat/sidebar/side-bar";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+  const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    redirect("/auth/login");
+  }
   return (
     <main className="h-screen overflow-hidden">
       <div className="flex h-full">
 
-    {/* Left Mini Sidebar */}
-    <MenuSidebar />
+        {/* Left Mini Sidebar */}
+        <MenuSidebar />
 
-    {/* Chat Sidebar */}
-    <SideBar />
+        {/* Chat Sidebar */}
+        <SideBar />
 
-    {/* Main Content */}
-    <section className="flex-1 relative">
-      <div className="h-full flex items-center justify-center">
+        {/* Main Content */}
+        <section className="flex-1 relative">
+          {children}
+        </section>
 
-        {children}
-        {/* <div className="opacity-30">
-          <Image 
-          src={'/blank.svg'}
-          width={300}
-          height={300}
-          alt='blank'
-          loading="eager"
-          className="dark:invert"
-          />
-        </div> */}
       </div>
-
-    </section>
-
-  </div>
-</main>
+    </main>
   );
 }
