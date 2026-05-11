@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from "@/lib/supabase/client";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 
 
@@ -96,7 +96,8 @@ const ChatRoom = ({ roomId }: roomId) => {
             payload.new
           ]);
         })
-      .subscribe((status) => console.log("Realtime status:", status))
+      .subscribe()
+
     return () => {
       supabase.removeChannel(channel)
     }
@@ -135,7 +136,7 @@ const ChatRoom = ({ roomId }: roomId) => {
           </select>
 
           <Button
-            onClick={handleJoin}
+            onClick={() => handleJoin()}
             className="text-white px-4 py-2 rounded"
           >
             Join Room
@@ -150,9 +151,9 @@ const ChatRoom = ({ roomId }: roomId) => {
       <header className="p-4 flex items-center justify-between border-b">
         <div className="flex items-center gap-3">
           {/* Avatar placeholder */}
-          <div className="w-10 h-10 rounded-full overflow-hidden">
+          {/* <div className="w-10 h-10 rounded-full overflow-hidden">
             <img src="/avatar-placeholder.png" alt="Profile" className="w-full h-full object-cover" />
-          </div>
+          </div> */}
           <div>
             <h2 className="font-semibold text-sm ">Jacquenetta Slowgrave</h2>
             <p className="text-xs text-green-500 flex items-center gap-1">
@@ -170,7 +171,6 @@ const ChatRoom = ({ roomId }: roomId) => {
 
       {/* CHAT AREA */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
-        <Suspense>
           {messages.map((msg) => (
 
             <div key={msg.id} className={`flex ${msg.sender_id === userId ? "justify-end" : "justify-start"}`}>
@@ -183,10 +183,7 @@ const ChatRoom = ({ roomId }: roomId) => {
                 </div>
               </div>
             </div>
-          ))}
-         
-        </Suspense>
-         
+          ))}   
       </div>
 
       {/* INPUT AREA */}
