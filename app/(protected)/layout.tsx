@@ -10,11 +10,12 @@ export default async function ProtectedLayout({
 }) {
 
   const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { data, error } = await supabase.auth.getClaims();
 
-  if (error || !user) {
+  if (error || !data?.claims) {
     redirect("/auth/login");
   }
+
   return (
     <main className="h-screen overflow-hidden">
       <div className="flex h-full">
