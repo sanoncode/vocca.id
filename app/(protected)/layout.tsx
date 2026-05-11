@@ -2,13 +2,15 @@ import MenuSidebar from "@/components/chat/menu/menu-sidebar";
 import SideBar from "@/components/chat/sidebar/side-bar";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 
 export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
+  
+  await connection();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
 
