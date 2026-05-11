@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { Suspense } from 'react'
 import SideButton from './side-button'
 import Image from 'next/image'
 import { ThemeSwitcher } from '../../theme-switcher'
@@ -77,18 +77,19 @@ const SideButtons = () => {
             </div>
             <div className="flex flex-col gap-4">
                 <ThemeSwitcher />
-                {BottomMenuButton.map((menu: menu) => (
-                    <SideButton action={() => handleClick(menu.name)} key={menu.name}>
-                        <Image
-                            src={menu.icon}
-                            height={menu.size}
-                            width={menu.size}
-                            alt={menu.name}
-                            className="dark:invert"
-                        />
-                    </SideButton>
-                ))}
-
+                <Suspense>
+                    {BottomMenuButton.map((menu: menu) => (
+                        <SideButton action={() => handleClick(menu.name)} key={menu.name}>
+                            <Image
+                                src={menu.icon}
+                                height={menu.size}
+                                width={menu.size}
+                                alt={menu.name}
+                                className="dark:invert"
+                            />
+                        </SideButton>
+                    ))}
+                </Suspense>
             </div>
         </>
     )
