@@ -1,15 +1,11 @@
 import ChatRoom from "@/components/chat/chat-room";
-import { Suspense } from "react";
+
 
 async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  
-return (
-  <Suspense fallback={<div>Loading chat...</div>}>
-     <ChatRoom roomId={id}/>
-  </Suspense>
-)
+  return <ChatRoom roomId={id} />
+
 }
 export default Page
 
