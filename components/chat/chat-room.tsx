@@ -1,83 +1,54 @@
 'use client'
 
 import { createClient } from "@/lib/supabase/client";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 
 
 type roomId = {
   roomId: string
 }
-
-type message = {
-  sender: 'me' | 'him',
-  message: string
-}
-
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<any[]>([]);
-  const [lastTimeStamp, setLastTimeStamp] = useState<string | null>(null)
   const [joined, setJoined] = useState(false);
   const [language, setLanguage] = useState("");
   const [userId, setUserId] = useState<string | null>(null)
   const [input, setInput] = useState('');
   const supabase = createClient()
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const userDetail = async () => {
-    const { data, error } = await supabase.auth.getUser();
-    setUserId(data.user?.id ?? null)
-  }
 
-  const fetchMessage = async () => {
+  const initializeRoom = async () => {
+    const { data } = await supabase.auth.getUser();
+    const currentUserId = data.user?.id;
 
-    let query = supabase
-      .from('messages')
-      .select('*')
-      .eq('room_id', roomId)
-      .order('created_at', { ascending: true })
+    if (!currentUserId) return;
 
-    if (lastTimeStamp) {
-      query = supabase
-        .from('messages')
-        .select('*')
-        .eq('room_id', roomId)
-        .gt('created_at', lastTimeStamp)
-        .order('created_at', { ascending: true })
+    setUserId(currentUserId);
+
+    const { data: member } = await supabase
+      .from("room_members")
+      .select("*")
+      .eq("room_id", roomId)
+      .eq("user_id", currentUserId)
+      .maybeSingle();
+
+    if (member) {
+      setJoined(true);
+      setLanguage(member.language);
+      await fetchMessages();
     }
+  };
 
-    const { data, error } = await query
+  const fetchMessages = async () => {
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("room_id", roomId)
+      .order("created_at", { ascending: true });
 
-    if (data && data.length > 0) {
-
-      setMessages((prev) => {
-        const newMessages = data.filter(
-          (msg) => !prev.some((p) => p.id === msg.id)
-        );
-
-        const updated = [...prev, ...newMessages];
-
-        if (updated.length > 0) {
-          setLastTimeStamp(updated[updated.length - 1].created_at)
-        }
-        return updated
-      });
-    }
+    setMessages(data || []);
   }
-
-   const checkMembership = async (userId: string | null) => {
-    
-        const { data } = await supabase
-            .from("room_members")
-            .select("*")
-            .eq("room_id", roomId)
-            .eq("user_id", userId)
-            .single();
-
-        if (data) {
-            setJoined(true);
-            setLanguage(data.language);
-        }
-    };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -93,80 +64,86 @@ const ChatRoom = ({ roomId }: roomId) => {
   };
 
   const handleJoin = async () => {
-        if (!language || !userId) return;
+    if (!language || !userId) return;
 
-        await supabase.from("room_members").insert({
-            room_id: roomId,
-            user_id: userId,
-            language: language,
-        });
+    const { error } = await supabase.from("room_members").insert({
+      room_id: roomId,
+      user_id: userId,
+      language: language,
+    });
 
-        setJoined(true);
-    };
+    if (!error) {
+      setJoined(true);
+    }
+  };
 
   useEffect(() => {
-    fetchMessage()
-    // realtime need subscription from supabase,
-    // for MVP we just use interval
-    const interval = setInterval(() => {
-      fetchMessage()
-    }, 500)
+    if (!joined) return;
 
-    return () => clearInterval(interval)
+    fetchMessages();
 
-    // realtime for future development
-    // const channel = supabase
-    //     .channel("room-" + roomId)
-    //     .on("postgres_changes",
-    //         {
-    //             event: 'INSERT',
-    //             schema: 'PUBLIC',
-    //             table: 'messages',
-    //             filter: `room_id=eq.${roomId}`
-    //         }, (payload) => {
-    //             setMessages((prev) => [
-    //                 ...prev,
-    //                 payload.new
-    //             ]);
-    //         })
-    //     .subscribe()
-    // return () => {
-    //     supabase.removeChannel(channel)
-    // }
-
-  }, [roomId])
-
-   useEffect(() => {
-        userDetail()
-        checkMembership(userId ?? null)
-    }, [])
- if (!joined) {
-        return (
-            <div className="h-screen flex items-center justify-center">
-                <div className="p-6 rounded-xl shadow flex flex-col gap-3">
-                    <h2 className="font-semibold">Select your language</h2>
-
-                    <select
-                        className="border p-2"
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                    >
-                        <option value="">Choose language</option>
-                        <option value="id">Indonesia</option>
-                        <option value="en">English</option>
-                        <option value="ko">Korean</option>
-                    </select>
-
-                    <Button
-                        onClick={handleJoin}
-                        className="text-white px-4 py-2 rounded"
-                    >
-                        Join Room
-                    </Button>
-                </div>
-            </div>
-        );
+    const channel = supabase
+      .channel("room-" + roomId)
+      .on("postgres_changes",
+        {
+          event: 'INSERT',
+          schema: 'PUBLIC',
+          table: 'messages',
+          filter: `room_id=eq.${roomId}`
+        }, (payload) => {
+          setMessages((prev) => [
+            ...prev,
+            payload.new
+          ]);
+        })
+      .subscribe((status) => console.log("Realtime status:", status))
+    return () => {
+      supabase.removeChannel(channel)
     }
+
+  }, [messages])
+
+  useEffect(() => {
+    initializeRoom();
+  }, []);
+
+  useEffect(() => {
+     const container = chatContainerRef.current;
+    if (!container) return;
+
+  container.scrollTo({
+    top: container.scrollHeight,
+    behavior: "smooth",
+  });
+  }, [messages.length]);
+
+  if (!joined) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="p-6 rounded-xl shadow flex flex-col gap-3">
+          <h2 className="font-semibold">Select your language</h2>
+
+          <select
+            className="border p-2"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+          >
+            <option value="">Choose language</option>
+            <option value="id">Indonesia</option>
+            <option value="en">English</option>
+            <option value="ko">Korean</option>
+          </select>
+
+          <Button
+            onClick={handleJoin}
+            className="text-white px-4 py-2 rounded"
+          >
+            Join Room
+          </Button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col h-full">
       {/* HEADER */}
@@ -192,10 +169,10 @@ const ChatRoom = ({ roomId }: roomId) => {
       </header>
 
       {/* CHAT AREA */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
         <Suspense>
           {messages.map((msg) => (
-            
+
             <div key={msg.id} className={`flex ${msg.sender_id === userId ? "justify-end" : "justify-start"}`}>
               <div className={`relative px-4 py-3 rounded-xl border ${msg.sender_id === userId ? "border-green-600" : "border-yellow-600"} border-green-600 max-w-[70%] text-sm`}>
                 {msg.text}
@@ -207,7 +184,9 @@ const ChatRoom = ({ roomId }: roomId) => {
               </div>
             </div>
           ))}
+         
         </Suspense>
+         
       </div>
 
       {/* INPUT AREA */}
