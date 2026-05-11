@@ -5,6 +5,10 @@ import { Suspense } from "react";
 async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
+    if(!id){
+      return <div>...loading</div>
+    }
+
   return <ChatRoom roomId={id}/>
 }
 export default Page

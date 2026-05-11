@@ -27,11 +27,7 @@ export default async function ProtectedLayout({
 
         {/* Main Content */}
         <section className="flex-1 relative">
-
           {children}
-          {/* 
-        */}
-
         </section>
 
       </div>

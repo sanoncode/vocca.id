@@ -1,7 +1,6 @@
 import Image from "next/image"
 
-function Page() {
- 
+const Page =  () => {
   return (
     
     <div className="flex flex-col items-center h-full justify-center">
