@@ -1,8 +1,9 @@
 'use client'
-import React, { Suspense, useEffect, useState } from 'react'
-import LayoutSideBar from './layout-sidebar'
-import Link from 'next/link'
+import React, { useEffect, useState } from 'react'
+import SideBarSection from './side-bar-section'
 import { createClient } from '@/lib/supabase/client'
+import SideBarItem from './side-bar-item'
+import { MessageSquare } from 'lucide-react'
 
 type Room = {
   id: string,
@@ -30,21 +31,15 @@ const ChatSidebar = () => {
 
 
   return (
-    <LayoutSideBar
-      title='Chats'
-      buttonTitle='New'
-    >
-      <Suspense>
-        {rooms.length > 0 && rooms.map((room) => (
-          <div key={room.id} className="flex p-4">
-            <Link href={`/chat/${room.id}`}>
-              {room.name}
-            </Link>
-          </div>
-        ))}
-      </Suspense>
-    </LayoutSideBar>
+      <SideBarSection
+          title="Chats"
+          icon={<MessageSquare className="w-4 h-4" />}
+        >{rooms.map((room)=> <SideBarItem key={room.id} label={room.name} href={`/chat/${room.id}`} />)}
+        </SideBarSection>
   )
 }
 
 export default ChatSidebar
+
+
+  

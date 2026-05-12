@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { createClient } from "@/lib/supabase/client";
@@ -8,6 +9,8 @@ import { Button } from "../ui/button";
 type roomId = {
   roomId: string
 }
+
+
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [joined, setJoined] = useState(false);
@@ -137,7 +140,7 @@ const ChatRoom = ({ roomId }: roomId) => {
 
           <Button
             onClick={() => handleJoin()}
-            className="text-white px-4 py-2 rounded"
+            className="px-4 py-2 rounded"
           >
             Join Room
           </Button>
