@@ -1,5 +1,6 @@
 import MenuSidebar from "@/components/chat/menu/menu-sidebar";
 import SideBar from "@/components/chat/sidebar/side-bar";
+import { Suspense } from "react";
 
 export default async function Layout({
   children,
@@ -15,7 +16,9 @@ export default async function Layout({
         <MenuSidebar />
 
         {/* Chat Sidebar */}
-        <SideBar />
+        <Suspense>
+          <SideBar />
+        </Suspense>
 
         {/* Main Content */}
         <section className="flex-1 relative">
