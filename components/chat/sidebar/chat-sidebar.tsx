@@ -1,5 +1,5 @@
 'use client'
-import React, { Suspense, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import LayoutSideBar from './layout-sidebar'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -34,7 +34,6 @@ const ChatSidebar = () => {
       title='Chats'
       buttonTitle='New'
     >
-      <Suspense>
         {rooms.length > 0 && rooms.map((room) => (
           <div key={room.id} className="flex p-4">
             <Link href={`/chat/${room.id}`}>
@@ -42,7 +41,6 @@ const ChatSidebar = () => {
             </Link>
           </div>
         ))}
-      </Suspense>
     </LayoutSideBar>
   )
 }
