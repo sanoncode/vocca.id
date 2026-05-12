@@ -1,5 +1,5 @@
 'use client'
-import { useParams, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import React from 'react'
 import PeopleSidebar from './people-sidebar'
 import GroupsSidebar from './groups-sidebar'

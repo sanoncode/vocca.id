@@ -1,23 +1,13 @@
 import MenuSidebar from "@/components/chat/menu/menu-sidebar";
 import SideBar from "@/components/chat/sidebar/side-bar";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { connection } from "next/server";
+import { Suspense } from "react";
 
-export default async function ProtectedLayout({
+export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   
-  await connection();
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-
-  if (error || !data?.claims) {
-    redirect("/auth/login");
-  }
-
   return (
     <main className="h-screen overflow-hidden">
       <div className="flex h-full">
@@ -26,7 +16,9 @@ export default async function ProtectedLayout({
         <MenuSidebar />
 
         {/* Chat Sidebar */}
-        <SideBar />
+        <Suspense>
+          <SideBar />
+        </Suspense>
 
         {/* Main Content */}
         <section className="flex-1 relative">
