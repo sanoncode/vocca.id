@@ -6,7 +6,6 @@ type props = {
   }
 }
 
-
 async function Page({ params }: props) { 
   const { id } = await params;
 
