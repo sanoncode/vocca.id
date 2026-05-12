@@ -1,5 +1,4 @@
-import MenuSidebar from "@/components/chat/menu/menu-sidebar";
-import SideBar from "@/components/chat/sidebar/side-bar";
+import Sidebar from "@/components/chat/sidebar/side-bar";
 import { Suspense } from "react";
 
 export default async function Layout({
@@ -7,24 +6,18 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  
   return (
     <main className="h-screen overflow-hidden">
       <div className="flex h-full">
-
         {/* Left Mini Sidebar */}
-        <MenuSidebar />
+        {/* <MenuSidebar /> */}
 
         {/* Chat Sidebar */}
         <Suspense>
-          <SideBar />
+          <Sidebar />
         </Suspense>
-
         {/* Main Content */}
-        <section className="flex-1 relative">
-          {children}
-        </section>
-
+        <section className="flex-1 relative">{children}</section>
       </div>
     </main>
   );
