@@ -1,30 +1,113 @@
-'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Button } from "@/components/ui/button";
 
-import {
-  Plus,
-  Search,
-} from "lucide-react";
+import { Search } from "lucide-react";
 
 import ChatSidebar from "./chat-sidebar";
 import GroupSidebar from "./groups-sidebar";
 import SideLogout from "./side-logout";
+import CreateButtonSideBar from "./create-button-sidebar";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+
+
+type Room = {
+  created_at: string;
+  created_by: string | null;
+  id: string;
+  member_count: number;
+  name: string;
+};
 
 
 export default function Sidebar() {
+
+    const [user, setUser] = useState(null)
+    const [room, setRoom] = useState<Room[]>([])
+    const [rooms, setRooms] = useState<Room[]>([])
+
+  const fetchRoom = async () => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const userId = user?.id;
+    
+    setUser(user?.user_metadata.name ?? null)
+
+    const { data } = await supabase
+      .from("room_members")
+      .select(
+        `
+            room_id,
+            rooms (
+            id,
+            name,
+            created_by,
+            created_at
+            )
+        `,
+      )
+      .eq("user_id", userId);
+
+    const roomIds = data?.map((item) => item.room_id) ?? [];
+
+    const { data: members } = await supabase
+      .from("room_members")
+      .select("room_id")
+      .in("room_id", roomIds);
+
+    const counts = members?.reduce(
+        (acc, row) => {
+          acc[row.room_id] = (acc[row.room_id] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ) ?? {};
+
+        const rooms: Room[] =
+    data?.map((item) => {
+        const room = Array.isArray(item.rooms)
+        ? item.rooms[0]
+        : item.rooms;
+
+        return {
+        id: room?.id ?? "",
+        name: room?.name ?? "Untitled Room",
+        created_at: room?.created_at ?? "",
+        created_by: room?.created_by ?? null,
+        member_count: counts[item.room_id] || 0,
+        };
+    }) ?? [];
+    
+
+    const chats = rooms.filter((room) => room.member_count === 2);
+    const groups = rooms.filter((room) => room.member_count > 2);
+      console.log(chats, 'chat')
+       console.log(groups, 'groups')
+
+    setRoom(chats)
+    setRooms(groups)
+  };
+
+  useEffect(() => {
+    fetchRoom();
+  }, []);
+
   return (
     <aside className="w-[360px] border-r flex flex-col">
       {/* Header */}
       <div className="p-6 border-b">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Vocca</h1>
+          <h1 className="text-3xl font-bold">Hi, {user}</h1>
           <div className="flex items-end gap-1 align-baseline">
-             <ThemeSwitcher />
-                <Button variant={'outline'} size={"sm"} className=" flex items-center justify-center">
+            <ThemeSwitcher />
+            <CreateButtonSideBar />
+            {/* <Button variant={'outline'} size={"sm"} className=" flex items-center justify-center">
                     <Plus className="w-5 h-5" />
-                </Button>
+                </Button> */}
           </div>
         </div>
 
@@ -39,14 +122,13 @@ export default function Sidebar() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-       <ChatSidebar />
+        <ChatSidebar rooms={room} />
 
-        <GroupSidebar />
+        <GroupSidebar rooms={rooms}/>
       </div>
 
       {/* Footer */}
       <div className="border-t p-4 space-y-2">
-       
         {/* Theme Toggle */}
         {/* <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition">
           <div className="flex items-center gap-3">
@@ -60,7 +142,7 @@ export default function Sidebar() {
         </button> */}
 
         {/* Logout */}
-       <SideLogout />
+        <SideLogout />
       </div>
     </aside>
   );
