@@ -1,45 +1,41 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import SideBarSection from './side-bar-section'
-import { createClient } from '@/lib/supabase/client'
-import SideBarItem from './side-bar-item'
-import { MessageSquare } from 'lucide-react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+import React from "react";
+import SideBarSection from "./side-bar-section";
+import SideBarItem from "./side-bar-item";
+import { MessageSquare } from "lucide-react";
 
-type Room = {
-  id: string,
-  name: string
+type props = {
+    created_at: string,
+    created_by: string | null,
+    id: string,
+    member_count: number,
+    name: string
+};
+
+type ChatSideBarProps = {
+  rooms: props[]
 }
 
-const ChatSidebar = () => {
+const ChatSidebar = ({rooms}: ChatSideBarProps) => {
 
-  const [rooms, setRooms] = useState<Room[]>([])
-
-  const fetchRoom = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('rooms')
-      .select("id, name")
-
-    if (error) return;
-
-    setRooms(data ?? null)
+  if(!rooms){
+    return <div>loading....</div>
+  } return (
+    <SideBarSection title="Chats" icon={<MessageSquare className="w-4 h-4" />}>
+      {
+        rooms.length > 0 ? ( 
+        rooms.map((room: props) => (
+        <SideBarItem
+          key={room.id}
+          label={room.name}
+          href={`/chat/${room.id}`}
+        />
+      )))
+    : <div className="text-muted-foreground">there is no chat</div>
   }
+    </SideBarSection>
+  );
+};
 
-  useEffect(() => {
-    fetchRoom()
-  }, [])
-
-
-  return (
-      <SideBarSection
-          title="Chats"
-          icon={<MessageSquare className="w-4 h-4" />}
-        >{rooms.map((room)=> <SideBarItem key={room.id} label={room.name} href={`/chat/${room.id}`} />)}
-        </SideBarSection>
-  )
-}
-
-export default ChatSidebar
-
-
-  
+export default ChatSidebar;

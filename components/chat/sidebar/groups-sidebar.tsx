@@ -1,45 +1,43 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import SideBarSection from './side-bar-section'
-import { createClient } from '@/lib/supabase/client'
-import SideBarItem from './side-bar-item'
-import { MessageSquare } from 'lucide-react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+import React from "react";
+import SideBarSection from "./side-bar-section";
 
-type Room = {
-  id: string,
-  name: string
-}
+import SideBarItem from "./side-bar-item";
+import { MessageSquare } from "lucide-react";
 
-const GroupSidebar = () => {
+type props = {
+  created_at: string;
+  created_by: string | null;
+  id: string;
+  member_count: number;
+  name: string;
+};
 
-  const [rooms, setRooms] = useState<Room[]>([])
+type GroupSideBarProps = {
+  rooms: props[];
+};
 
-  const fetchRoom = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('rooms')
-      .select("id, name")
-
-    if (error) return;
-
-    setRooms(data ?? null)
+const GroupSidebar = ({ rooms }: GroupSideBarProps) => {
+  if (!rooms) {
+    return <div>loading....</div>;
   }
 
-  useEffect(() => {
-    fetchRoom()
-  }, [])
-
-
   return (
-      <SideBarSection
-          title="Groups"
-          icon={<MessageSquare className="w-4 h-4" />}
-        >{rooms.map((room)=> <SideBarItem key={room.id} label={room.name} href={`/chat/${room.id}`} />)}
-        </SideBarSection>
-  )
-}
+    <SideBarSection title="Groups" icon={<MessageSquare className="w-4 h-4" />}>
+      {rooms.length > 0 ? (
+        rooms.map((room: props) => (
+          <SideBarItem
+            key={room.id}
+            label={room.name}
+            href={`/chat/${room.id}`}
+          />
+        ))
+      ) : (
+        <div className="text-muted-foreground">there is no groups</div>
+      )}
+    </SideBarSection>
+  );
+};
 
-export default GroupSidebar
-
-
-  
+export default GroupSidebar;
