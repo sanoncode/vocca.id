@@ -21,10 +21,14 @@ type Room = {
   name: string;
 };
 
+type user = {
+  id?: string,
+  name: string,
+}
 
 export default function Sidebar() {
 
-    const [user, setUser] = useState(null)
+    const [user, setUser] = useState<user | null>(null)
     const [room, setRoom] = useState<Room[]>([])
     const [rooms, setRooms] = useState<Room[]>([])
 
@@ -33,9 +37,16 @@ export default function Sidebar() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const userId = user?.id;
     
-    setUser(user?.user_metadata.name ?? null)
+    const userId = user?.id;
+    const userName = user?.user_metadata.full_name
+
+   const currUser = {
+      id: userId,
+      name: userName
+   }
+
+  setUser(currUser ?? null)
 
     const { data } = await supabase
       .from("room_members")
@@ -67,8 +78,7 @@ export default function Sidebar() {
         {} as Record<string, number>,
       ) ?? {};
 
-        const rooms: Room[] =
-    data?.map((item) => {
+        const rooms: Room[] = data?.map((item) => {
         const room = Array.isArray(item.rooms)
         ? item.rooms[0]
         : item.rooms;
@@ -99,13 +109,10 @@ export default function Sidebar() {
       {/* Header */}
       <div className="p-6 border-b">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Hi, {user}</h1>
+          <h1 className="text-3xl font-bold">Hi, {user?.name}</h1>
           <div className="flex items-end gap-1 align-baseline">
             <ThemeSwitcher />
-            <CreateButtonSideBar />
-            {/* <Button variant={'outline'} size={"sm"} className=" flex items-center justify-center">
-                    <Plus className="w-5 h-5" />
-                </Button> */}
+            <CreateButtonSideBar userId={user?.id} />
           </div>
         </div>
 

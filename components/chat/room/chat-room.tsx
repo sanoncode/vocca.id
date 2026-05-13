@@ -19,7 +19,6 @@ type members = {
 
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<any[]>([]);
-  const [joined, setJoined] = useState(false);
   const [members, setMembers] = useState<members[]>([])
   const [roomTitle, setRoomTitle] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -34,7 +33,7 @@ const ChatRoom = ({ roomId }: roomId) => {
     if (!currentUserId) return;
 
     setUserId(currentUserId);
-    
+
     const { data: roomTitle } = await supabase
       .from("rooms")
       .select("name")
@@ -55,8 +54,6 @@ const ChatRoom = ({ roomId }: roomId) => {
         const normalizeMembers = members?.map((member) => Object.assign(member.user))
         setMembers(normalizeMembers ?? [])
       }
-
-    
 
   };
 
