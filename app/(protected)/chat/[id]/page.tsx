@@ -1,4 +1,4 @@
-import ChatRoom from "@/components/chat/chat-room";
+import ChatRoom from "@/components/chat/room/chat-room";
 
 type props = {
   params:{
