@@ -85,9 +85,7 @@ export default function Sidebar() {
 
     const chats = rooms.filter((room) => room.member_count === 2);
     const groups = rooms.filter((room) => room.member_count > 2);
-      console.log(chats, 'chat')
-       console.log(groups, 'groups')
-
+      
     setRoom(chats)
     setRooms(groups)
   };

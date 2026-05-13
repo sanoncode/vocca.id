@@ -13,7 +13,6 @@ import { MessageSquare, Plus } from "lucide-react";
 
 const CreateButtonSideBar = () => {
 
-
   const ICON_SIZE = 16;
 
   return (
