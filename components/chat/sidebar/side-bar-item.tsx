@@ -13,8 +13,8 @@ const SideBarItem = ({
   href
 }: itemProps) => {
   return (
-     <Button variant={"link"} size={"lg"}>
-        <Link href={href}>
+     <Button variant={"link"} className='w-full' size={'lg'}>
+        <Link className='text-left' href={href}>
             {label}
       </Link>
    </Button>
