@@ -31,6 +31,7 @@ export default function Sidebar() {
     const [user, setUser] = useState<user | null>(null)
     const [room, setRoom] = useState<Room[]>([])
     const [rooms, setRooms] = useState<Room[]>([])
+    const supabase = createClient()
 
   const fetchRoom = async () => {
     const supabase = await createClient();
@@ -63,6 +64,8 @@ export default function Sidebar() {
       )
       .eq("user_id", userId);
 
+      
+
     const roomIds = data?.map((item) => item.room_id) ?? [];
 
     const { data: members } = await supabase
@@ -78,7 +81,8 @@ export default function Sidebar() {
         {} as Record<string, number>,
       ) ?? {};
 
-        const rooms: Room[] = data?.map((item) => {
+    
+    const rooms: Room[] = data?.map((item) => {
         const room = Array.isArray(item.rooms)
         ? item.rooms[0]
         : item.rooms;
@@ -91,9 +95,8 @@ export default function Sidebar() {
         member_count: counts[item.room_id] || 0,
         };
     }) ?? [];
-    
 
-    const chats = rooms.filter((room) => room.member_count === 2);
+    const chats = rooms.filter((room) => room.member_count <= 2);
     const groups = rooms.filter((room) => room.member_count > 2);
       
     setRoom(chats)
@@ -101,8 +104,30 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
+
     fetchRoom();
-  }, []);
+
+    const channel = supabase
+      .channel("sidebar" + user?.id)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "PUBLIC",
+          table: "rooms",
+          filter: `created_by=eq.${user?.id}`,
+        },
+        async () => {
+          await fetchRoom()
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel); 
+    };
+
+  }, [room, rooms]);
 
   return (
     <aside className="w-[360px] border-r flex flex-col">
@@ -112,7 +137,7 @@ export default function Sidebar() {
           <h1 className="text-3xl font-bold">Hi, {user?.name}</h1>
           <div className="flex items-end gap-1 align-baseline">
             <ThemeSwitcher />
-            <CreateButtonSideBar userId={user?.id} />
+            <CreateButtonSideBar />
           </div>
         </div>
 
