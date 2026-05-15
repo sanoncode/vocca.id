@@ -14,15 +14,14 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
-import SelectLangButton from "./select-lang-button";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-const CreateButtonSideBar = () => {
+const CreateInviteButton = () => {
+  const router = useRouter();
+
   const [open, setOpen] = useState(false);
-
-  const [newRoomId, setNewRoomId] = useState<string | null>(null);
   const [roomName, setRoomName] = useState("");
   const [lang, setLang] = useState("");
 
@@ -68,15 +67,28 @@ const CreateButtonSideBar = () => {
     try {
       const supabase = await createClient();
 
-      const { data: room } = await supabase.rpc("create_room_with_member", {
-        room_name: roomName.trim(),
-        room_lang: lang,
-      });
+      const { data: room, error: roomError } = await supabase.rpc(
+        "create_room_with_member",
+        {
+          room_name: roomName.trim(),
+          room_lang: lang,
+        },
+      );
 
-      if (room) {
-        setNewRoomId(room);
+      if (roomError) {
+        console.log(roomError, "room error");
       }
       // 3. Reset form
+      resetForm();
+
+      // 4. Close dialog
+      setOpen(false);
+
+      // 5. Refresh sidebar data
+      router.refresh();
+
+      // 6. Optional: redirect to new room
+      router.push(`/chat/${room.id}`);
     } catch (err) {
       console.error("Create room error:", err);
       setError("Gagal membuat room.");
@@ -85,38 +97,31 @@ const CreateButtonSideBar = () => {
     }
   };
 
-  const handleDialogContent = () => {
-    if (newRoomId !== null) {
-      return (
-        <>
-          <DialogHeader>
-            <DialogTitle>🎉 Room Created Successfully!</DialogTitle>
-            <DialogDescription>
-              Your room{" "}
-              <span className="font-semibold text-primary">{roomName}</span> is
-              ready. You can now jump in and start chatting!
-            </DialogDescription>
-          </DialogHeader>
+  const isFormValid = roomName.trim().length >= 3 && !!lang;
 
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" disabled={loading}>
-                Close
-              </Button>
-            </DialogClose>
-            <Button onClick={() => {
-                resetForm()
-                setOpen(false)
-            }}>
-              <Link href={`/chat/${newRoomId}`}>jump in</Link>
-            </Button>
-          </DialogFooter>
-        </>
-      );
-    }
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        setOpen(value);
 
-    return (
-      <>
+        // Reset form when dialog is closed
+        if (!value) {
+          resetForm();
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button
+          className="hover:border-black dark:hover:border-white"
+          variant="outline"
+          size="sm"
+        >
+          <Plus size={16} />
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>New Chat</DialogTitle>
           <DialogDescription>
@@ -138,7 +143,6 @@ const CreateButtonSideBar = () => {
 
           <Field>
             <Label>Your Language</Label>
-            <SelectLangButton value={lang} onChange={setLang} />
           </Field>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
@@ -162,40 +166,9 @@ const CreateButtonSideBar = () => {
             )}
           </Button>
         </DialogFooter>
-      </>
-    );
-  };
-
-  const isFormValid = roomName.trim().length >= 3 && !!lang;
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(value) => {
-        setOpen(value);
-
-        // Reset form when dialog is closed
-        if (!value) {
-          resetForm();
-          setNewRoomId(null);
-        }
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button
-          className="hover:border-black dark:hover:border-white"
-          variant="outline"
-          size="sm"
-        >
-          <Plus size={16} />
-        </Button>
-      </DialogTrigger>
-
-      <DialogContent className="sm:max-w-sm">
-        {handleDialogContent()}
       </DialogContent>
     </Dialog>
   );
 };
 
-export default CreateButtonSideBar;
+export default CreateInviteButton;

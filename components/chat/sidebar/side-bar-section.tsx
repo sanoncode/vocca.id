@@ -33,7 +33,7 @@ const SideBarSection = ({
         </button>
       </Collapsible.Trigger>
 
-      <Collapsible.Content className="pb-4 pl-10 space-y-2">
+      <Collapsible.Content className="space-y-2">
         {children}
       </Collapsible.Content>
     </Collapsible.Root>

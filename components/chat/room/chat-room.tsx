@@ -19,7 +19,6 @@ type members = {
 
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<any[]>([]);
-  const [joined, setJoined] = useState(false);
   const [members, setMembers] = useState<members[]>([])
   const [roomTitle, setRoomTitle] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -34,7 +33,7 @@ const ChatRoom = ({ roomId }: roomId) => {
     if (!currentUserId) return;
 
     setUserId(currentUserId);
-    
+
     const { data: roomTitle } = await supabase
       .from("rooms")
       .select("name")
@@ -47,16 +46,15 @@ const ChatRoom = ({ roomId }: roomId) => {
 
     const { data: members } = await supabase
       .from("room_members")
-      .select(`user:profiles!room_members_user_id_fkey (id,name,avatar_url)`)
+      .select("user_id,profiles(id,name,avatar_url)")
       .eq("room_id", roomId)
       .order("joined_at", {ascending: true})
 
+
       if(members){
-        const normalizeMembers = members?.map((member) => Object.assign(member.user))
+        const normalizeMembers = members?.map((member) => Object.assign(member.profiles))
         setMembers(normalizeMembers ?? [])
       }
-
-    
 
   };
 
@@ -64,13 +62,15 @@ const ChatRoom = ({ roomId }: roomId) => {
     const { data } = await supabase
       .from("messages")
       .select(
-        `*,sender:profiles!messages_sender_id_fkey (id,name,avatar_url)`,
+        `*,sender:profiles(id,name,avatar_url)`,
       )
       .eq("room_id", roomId)
       .order("created_at", { ascending: true });
 
     setMessages(data || []);
   };
+
+ 
 
   const handleSend = async () => {
     if (!input.trim()) return;
