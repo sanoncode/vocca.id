@@ -8,144 +8,89 @@ import ChatRoomHeader from "./chat-room-header";
 import ChatRoomContent from "./chat-room-content";
 import JoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
+import { addMember, getMessages, getRoomData, sendMessage, subscribeToMessages } from "@/services/chat-room-services";
+import { Avatar, Message } from "@/constants/types";
 
 
 type roomId = {
   roomId: string;
 };
 
-type avatars = {
-  id: string;
-  name: string;
-  avatar_url?: string;
-};
-
 const ChatRoom = ({ roomId }: roomId) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [lang, setLang] = useState("");
   const [joinLoading, setJoinLoading] = useState(false)
   const [joined, setJoined] = useState<boolean | null>(null);
-  const [avatars, setAvatars] = useState<avatars[]>([]);
+  const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [roomTitle, setRoomTitle] = useState("");
-  const [roomHost, setRoomHost] = useState("");
+  const [roomHost, setRoomHost] = useState<string | null>("");
   const [userId, setUserId] = useState<string | null>(null);
   const [input, setInput] = useState("");
-  const supabase = createClient();
 
   const initializeRoom = async () => {
-    const { data } = await supabase.auth.getUser();
-    const currentUserId = data.user?.id;
+    const { roomTitle, avatars, joined, created_by, userId } = await getRoomData(roomId)
 
-    if (!currentUserId) {
-      setJoined(false)
-      return;
-    }
-
-    setUserId(currentUserId);
-
-    const { data: preview } = await supabase.rpc("get_room_preview", {
-      room_id: roomId,
-    });
-      
-    if (preview) {
-      setRoomTitle(preview[0].room_title)
-      setRoomHost(preview[0].room_created_by)
-    }
-
-    const { data: avatars } = await supabase
-      .from("room_members")
-      .select("user_id,profiles(id,name,avatar_url)")
-      .eq("room_id", roomId)
-      .order("joined_at", { ascending: true });
-
-    if (avatars) {
-      const normalizeAvatars = avatars?.map((avatar) =>
-        Object.assign(avatar.profiles),
-      );
-      setAvatars(normalizeAvatars ?? []);
-    }
-
-    const { data: member } = await supabase
-      .from("room_members")
-      .select("user_id")
-      .eq("room_id", roomId)
-      .eq('user_id', currentUserId)
-      .maybeSingle();
-
-  
-    if (member === null) {
-      setJoined(false)
-    } else {
+    setUserId(userId);
+    setAvatars(avatars ?? []);
+    setRoomTitle(roomTitle)
+    setRoomHost(created_by)
+    if (joined) {
       setJoined(true)
+    } else {
+      setJoined(false)
     }
   };
 
   const fetchMessages = async () => {
-    const { data } = await supabase
-      .from("messages")
-      .select(`*,sender:profiles(id,name,avatar_url)`)
-      .eq("room_id", roomId)
-      .order("created_at", { ascending: true });
+    const { messages } = await getMessages(roomId)
 
-    setMessages(data || []);
+    setMessages(messages || []);
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    await supabase.from("messages").insert({
-      room_id: roomId,
-      sender_id: userId,
+    const newMessage = {
+      roomId: roomId,
+      senderId: userId,
       text: input,
-      original_lang: "id",
-    });
+      originalLang: "id",
+    }
 
+    await sendMessage(newMessage)
     setInput("");
   };
 
   const handleJoin = async () => {
     if (!lang || !userId) return;
-
-    setJoinLoading(true)
-    const { error } = await supabase.from("room_members").insert({
-      room_id: roomId,
-      user_id: userId,
-      language: lang,
-    });
-
-    if (!error) {
-      setJoined(true);
-      setJoinLoading(false)
+    const member = {
+      roomId,
+      userId,
+      language: lang
     }
+    await addMember(member)
+    setJoined(true);
+    setJoinLoading(false)
+
   };
 
   useEffect(() => {
     fetchMessages();
 
-    const channel = supabase
-      .channel("room-" + roomId)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "PUBLIC",
-          table: "messages",
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          setMessages((prev) => [...prev, payload.new]);
-        },
-      )
-      .subscribe();
+    const unsubscribe = subscribeToMessages(
+      roomId,
+      async () => {
+        console.log("New message detected");
+        await fetchMessages() 
+      })
+    return unsubscribe
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [messages]);
+
+  }, [roomId]);
 
   useEffect(() => {
     initializeRoom();
-  }, [joined]);
+  }, [roomId]);
 
   if (joined === null) {
     return (
@@ -157,7 +102,7 @@ const ChatRoom = ({ roomId }: roomId) => {
 
   if (!joined) {
     return (
-      <JoinRoomOverlay roomTitle={roomTitle} creatorName={roomHost} language={lang} setLanguage={setLang} handleJoin={handleJoin} loading={joinLoading}/>
+      <JoinRoomOverlay roomTitle={roomTitle} creatorName={roomHost} language={lang} setLanguage={setLang} handleJoin={handleJoin} loading={joinLoading} />
     );
   }
   return (

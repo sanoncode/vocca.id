@@ -9,11 +9,11 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Globe, Users } from "lucide-react";
-import SelectLangButton from "../sidebar/select-lang-button";
+import SelectLangButton from "../select-lang-button";
 
 type JoinRoomOverlayProps = {
   roomTitle: string;
-  creatorName: string;
+  creatorName: string | null;
   language: string;
   setLanguage: (value: string) => void;
   handleJoin: () => void;
