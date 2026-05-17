@@ -14,10 +14,11 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
-import SelectLangButton from "./select-lang-button";
+
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import SelectLangButton from "../select-lang-button";
 
 const CreateButtonSideBar = () => {
   const [open, setOpen] = useState(false);

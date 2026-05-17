@@ -7,6 +7,7 @@ type SectionProps = {
   icon: React.ReactNode;
   defaultOpen?: boolean;
   children: React.ReactNode;
+  length: number;
 };
 
 const SideBarSection = ({
@@ -14,6 +15,7 @@ const SideBarSection = ({
   icon,
   defaultOpen = true,
   children,
+  length
 }: SectionProps) => {
     const [open, setOpen] = useState(defaultOpen);
 
@@ -24,6 +26,7 @@ const SideBarSection = ({
           <div className="flex items-center gap-3">
             <div className="">{icon}</div>
             <span>{title}</span>
+            <span>({length})</span>
           </div>
           {open ? (
             <ChevronDown className="w-4 h-4 " />

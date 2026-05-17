@@ -10,7 +10,7 @@ export async function GetStarted(){
 
   return user ? (
     <Button>
-        <Link href='/chat' className="inline-flex items-center rounded-xl px-6 py-3 text-sm font-semibold shadow-sm transition" >
+        <Link href='/room' className="inline-flex items-center rounded-xl px-6 py-3 text-sm font-semibold shadow-sm transition" >
             Let's Have a Chat 💬
         </Link>
     </Button>

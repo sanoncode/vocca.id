@@ -5,12 +5,12 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 
 import { Search } from "lucide-react";
 
-import ChatSidebar from "./chat-sidebar";
-import GroupSidebar from "./groups-sidebar";
-import SideLogout from "./side-logout";
-import CreateButtonSideBar from "./create-button-sidebar";
+import ChatSidebar from "./sidebar-chat"
+import GroupSidebar from "./sidebar-groups"
+import SideLogout from './side-logout-button'
+import CreateButtonSideBar from "./sidebar-create-button";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 
 type Room = {
@@ -31,10 +31,10 @@ export default function Sidebar() {
     const [user, setUser] = useState<user | null>(null)
     const [room, setRoom] = useState<Room[]>([])
     const [rooms, setRooms] = useState<Room[]>([])
-    const supabase = createClient()
+    const supabase = useMemo(() => createClient(), []);
 
   const fetchRoom = async () => {
-    const supabase = await createClient();
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -64,7 +64,6 @@ export default function Sidebar() {
       )
       .eq("user_id", userId);
 
-      
 
     const roomIds = data?.map((item) => item.room_id) ?? [];
 
@@ -104,30 +103,32 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-
     fetchRoom();
+  }, []);
 
-    const channel = supabase
-      .channel("sidebar" + user?.id)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "PUBLIC",
-          table: "rooms",
-          filter: `created_by=eq.${user?.id}`,
-        },
-        async () => {
-          await fetchRoom()
-        }
-      )
-      .subscribe();
+  useEffect(() => {
+  if (!user?.id) return;
 
-    return () => {
-      supabase.removeChannel(channel); 
-    };
+  const channel = supabase
+    .channel(`sidebar-${user.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "room_members",
+        filter: `user_id=eq.${user.id}`,
+      },
+      async () => {
+        await fetchRoom();
+      }
+    )
+    .subscribe();
 
-  }, [room, rooms]);
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [user?.id]);
 
   return (
     <aside className="w-[360px] border-r flex flex-col">
