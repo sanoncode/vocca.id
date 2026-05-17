@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { UserRoundPlus } from "lucide-react";
 import Image from "next/image";
 import React from "react";
+import ChatRoomInviteButton from "./chat-room-invite-button";
 
 type avatar = {
     id:string,
@@ -51,10 +52,7 @@ const ChatRoomHeader = ({roomTitle, avatars}: props) => {
       </div>
 
       {/* Right Section */}
-      <Button variant="outline">
-        <UserRoundPlus className="w-4 h-4 mr-2" />
-        Invite
-      </Button>
+    <ChatRoomInviteButton />
     </header>
   );
 };

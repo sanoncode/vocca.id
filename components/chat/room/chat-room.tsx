@@ -6,8 +6,9 @@ import { useEffect, useState } from "react";
 // import { Button } from "../../ui/button";
 import ChatRoomHeader from "./chat-room-header";
 import ChatRoomContent from "./chat-room-content";
-import JoinRoomOverlay from "./chat-room-invite";
-// import { Loader2 } from "lucide-react";
+import JoinRoomOverlay from "./chat-join-room-overlay";
+import { Loader2 } from "lucide-react";
+
 
 type roomId = {
   roomId: string;
@@ -22,9 +23,11 @@ type avatars = {
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [lang, setLang] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false)
   const [joined, setJoined] = useState<boolean | null>(null);
   const [avatars, setAvatars] = useState<avatars[]>([]);
   const [roomTitle, setRoomTitle] = useState("");
+  const [roomHost, setRoomHost] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const supabase = createClient();
@@ -33,21 +36,20 @@ const ChatRoom = ({ roomId }: roomId) => {
     const { data } = await supabase.auth.getUser();
     const currentUserId = data.user?.id;
 
-    if (!currentUserId){
+    if (!currentUserId) {
       setJoined(false)
       return;
-    } 
+    }
 
     setUserId(currentUserId);
 
-    const { data: roomTitle } = await supabase
-      .from("rooms")
-      .select("name")
-      .eq("id", roomId)
-      .single();
-
-    if (roomTitle) {
-      setRoomTitle(roomTitle.name);
+    const { data: preview } = await supabase.rpc("get_room_preview", {
+      room_id: roomId,
+    });
+      
+    if (preview) {
+      setRoomTitle(preview[0].room_title)
+      setRoomHost(preview[0].room_created_by)
     }
 
     const { data: avatars } = await supabase
@@ -67,12 +69,15 @@ const ChatRoom = ({ roomId }: roomId) => {
       .from("room_members")
       .select("user_id")
       .eq("room_id", roomId)
-      .eq('user_id',currentUserId)
+      .eq('user_id', currentUserId)
       .maybeSingle();
 
-      if(member){
-        setJoined(!!member)
-      }
+  
+    if (member === null) {
+      setJoined(false)
+    } else {
+      setJoined(true)
+    }
   };
 
   const fetchMessages = async () => {
@@ -101,6 +106,7 @@ const ChatRoom = ({ roomId }: roomId) => {
   const handleJoin = async () => {
     if (!lang || !userId) return;
 
+    setJoinLoading(true)
     const { error } = await supabase.from("room_members").insert({
       room_id: roomId,
       user_id: userId,
@@ -109,6 +115,7 @@ const ChatRoom = ({ roomId }: roomId) => {
 
     if (!error) {
       setJoined(true);
+      setJoinLoading(false)
     }
   };
 
@@ -140,17 +147,17 @@ const ChatRoom = ({ roomId }: roomId) => {
     initializeRoom();
   }, [joined]);
 
-//   if (joined === null) {
-//   return (
-//     <div className="h-screen flex items-center justify-center">
-//       <Loader2 className="h-6 w-6 animate-spin" />
-//     </div>
-//   );
-// }
+  if (joined === null) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
 
   if (!joined) {
     return (
-      <JoinRoomOverlay roomName={"Meetup in Thailand"} creatorName={"SanBastia"} language={lang} setLanguage={setLang} handleJoin={handleJoin} />
+      <JoinRoomOverlay roomTitle={roomTitle} creatorName={roomHost} language={lang} setLanguage={setLang} handleJoin={handleJoin} loading={joinLoading}/>
     );
   }
   return (

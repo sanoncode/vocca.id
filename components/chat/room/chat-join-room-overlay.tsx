@@ -12,7 +12,7 @@ import { Globe, Users } from "lucide-react";
 import SelectLangButton from "../sidebar/select-lang-button";
 
 type JoinRoomOverlayProps = {
-  roomName: string;
+  roomTitle: string;
   creatorName: string;
   language: string;
   setLanguage: (value: string) => void;
@@ -21,12 +21,12 @@ type JoinRoomOverlayProps = {
 };
 
 export default function JoinRoomOverlay({
-  roomName,
+  roomTitle,
   creatorName,
   language,
   setLanguage,
   handleJoin,
-  loading = false,
+  loading ,
 }: JoinRoomOverlayProps) {
 
   return (
@@ -39,7 +39,7 @@ export default function JoinRoomOverlay({
 
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold">
-              Join {roomName}
+              Join {roomTitle}
             </CardTitle>
             <CardDescription className="text-sm">
               You were invited by{" "}
@@ -66,7 +66,7 @@ export default function JoinRoomOverlay({
             className="w-full"
             size="lg"
             disabled={!language || loading}
-            onClick={() => handleJoin}
+            onClick={() => handleJoin()}
           >
             {loading ? "Joining..." : "Join Room"}
           </Button>
