@@ -1,4 +1,4 @@
-import Sidebar from "@/components/chat/sidebar/side-bar";
+import Sidebar from "@/components/sidebar/side-bar";
 import { Suspense } from "react";
 
 export default async function Layout({

@@ -24,19 +24,21 @@ const GroupSidebar = ({ rooms }: GroupSideBarProps) => {
   }
 
   return (
-    <SideBarSection title="Groups" icon={<MessageSquare className="w-4 h-4" />}>
+    <>
+    <SideBarSection title="Groups" length={rooms.length} icon={<MessageSquare className="w-4 h-4" />}>
       {rooms.length > 0 ? (
         rooms.map((room: props) => (
           <SideBarItem
             key={room.id}
             label={room.name}
-            href={`/chat/${room.id}`}
+            href={`/room/${room.id}`}
           />
         ))
       ) : (
         <div className="text-muted-foreground">there is no groups</div>
       )}
     </SideBarSection>
+    </>
   );
 };
 

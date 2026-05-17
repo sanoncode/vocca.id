@@ -22,14 +22,14 @@ const ChatSidebar = ({rooms}: ChatSideBarProps) => {
   if(!rooms){
     return <div>loading....</div>
   } return (
-    <SideBarSection title="Chats" icon={<MessageSquare className="w-4 h-4" />}>
+    <SideBarSection title="Chats" length={rooms.length} icon={<MessageSquare className="w-4 h-4" />}>
       {
         rooms.length > 0 ? ( 
         rooms.map((room: props) => (
         <SideBarItem
           key={room.id}
           label={room.name}
-          href={`/chat/${room.id}`}
+          href={`/room/${room.id}`}
         />
       )))
     : <div className="text-muted-foreground">there is no chat</div>
