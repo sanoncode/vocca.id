@@ -15,7 +15,8 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
             avatars: [],
             joined: false,
             created_by: null,
-            userId: null
+            userId: null,
+            currentUserLang:null
         };
     }
 
@@ -36,13 +37,17 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
     const avatars: Avatar[] =
         members?.map((member) => Object.assign(member.profiles)) ?? [];
 
+        
+
 
     const { data: membership, error: membershipError } = await supabase
         .from("room_members")
-        .select("user_id")
+        .select("user_id,language")
         .eq("room_id", roomId)
         .eq("user_id", currentUserId)
         .maybeSingle();
+
+        console.log(membership,'member')
 
     if (membershipError) throw membershipError;
 
@@ -51,7 +56,8 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
         avatars,
         joined: !!membership,
         created_by: preview[0].room_created_by,
-        userId: currentUserId
+        userId: currentUserId,
+        currentUserLang: membership?.language
     };
 }
 
@@ -73,7 +79,7 @@ export async function sendMessage(params: {
     roomId: string;
     senderId: string | null;
     text: string;
-    originalLang?: string;
+    originalLang: string | null;
 }) {
     const { roomId, senderId, text, originalLang } = params;
 
