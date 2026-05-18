@@ -1,19 +1,9 @@
 import { Avatar, GetMessagesResponse, Message, RoomData } from "@/constants/types";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUser } from "./user-services";
 
 
 const supabase = createClient()
-
-export async function getCurrentUser() {
-    const {
-        data: { user },
-        error,
-    } = await supabase.auth.getUser();
-
-    if (error) throw error;
-
-    return user;
-}
 
 export async function getRoomData(roomId: string): Promise<RoomData> {
     const user = await getCurrentUser();
@@ -44,7 +34,7 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
     if (membersError) throw membersError;
 
     const avatars: Avatar[] =
-        members?.map((member: any) => Object.assign(member.profiles)) ?? [];
+        members?.map((member) => Object.assign(member.profiles)) ?? [];
 
 
     const { data: membership, error: membershipError } = await supabase
@@ -128,10 +118,30 @@ export function subscribeToMessages(
             () => {
                 onNewMessage();
             }
-        )
-           .subscribe((status) => {
-      console.log("Realtime status:", status);
-    });
+        ).subscribe()
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
+}
+export function subscribeToRoomMember(
+    roomId: string,
+    onNewMember: () => void
+) {
+    const channel = supabase
+        .channel(`room-members-${roomId}`)
+        .on(
+            "postgres_changes",
+            {
+                event: "INSERT",
+                schema: "public",
+                table: "room_members",
+                filter: `room_id=eq.${roomId}`,
+            },
+            () => {
+                onNewMember();
+            }
+        ).subscribe()
 
     return () => {
         supabase.removeChannel(channel);

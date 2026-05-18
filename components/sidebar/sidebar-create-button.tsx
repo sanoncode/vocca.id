@@ -92,10 +92,18 @@ const CreateButtonSideBar = () => {
         <>
           <DialogHeader>
             <DialogTitle>🎉 Room Created Successfully!</DialogTitle>
-            <DialogDescription>
-              Your room{" "}
-              <span className="font-semibold text-primary">{roomName}</span> is
-              ready. You can now jump in and start chatting!
+            <DialogDescription asChild>
+              <div className="space-y-3 mt-5">
+                <p className="text-sm text-muted-foreground">
+                  Your room{" "}
+                  <span className="font-semibold text-primary">{roomName}</span>{" "}
+                  is ready.
+                </p>
+
+                <p className="text-sm text-muted-foreground">
+                  You can now jump in and start chatting with your friends.
+                </p>
+              </div>
             </DialogDescription>
           </DialogHeader>
 
@@ -105,11 +113,13 @@ const CreateButtonSideBar = () => {
                 Close
               </Button>
             </DialogClose>
-            <Button onClick={() => {
-                resetForm()
-                setOpen(false)
-            }}>
-              <Link href={`/chat/${newRoomId}`}>jump in</Link>
+            <Button
+              onClick={() => {
+                resetForm();
+                setOpen(false);
+              }}
+            >
+              <Link href={`/room/${newRoomId}`}>jump in</Link>
             </Button>
           </DialogFooter>
         </>
