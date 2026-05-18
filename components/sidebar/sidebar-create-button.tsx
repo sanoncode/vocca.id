@@ -16,9 +16,9 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Plus } from "lucide-react";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import SelectLangButton from "../select-lang-button";
+import { createRoom } from "@/services/chat-room-services";
 
 const CreateButtonSideBar = () => {
   const [open, setOpen] = useState(false);
@@ -65,25 +65,18 @@ const CreateButtonSideBar = () => {
     }
 
     setLoading(true);
+    const newRoom = {
+      roomName: roomName,
+      lang: lang
+    }
 
-    try {
-      const supabase = await createClient();
-
-      const { data: room } = await supabase.rpc("create_room_with_member", {
-        room_name: roomName.trim(),
-        room_lang: lang,
-      });
+      const room  = await createRoom(newRoom)
 
       if (room) {
         setNewRoomId(room);
+      
       }
-      // 3. Reset form
-    } catch (err) {
-      console.error("Create room error:", err);
-      setError("Gagal membuat room.");
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   const handleDialogContent = () => {

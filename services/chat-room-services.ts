@@ -75,6 +75,16 @@ export async function getMessages(roomId: string): Promise<GetMessagesResponse> 
     }
 }
 
+export async function createRoom(params:{roomName: string, lang: string}){
+    const { roomName, lang} = params
+       const { data: room } = await supabase.rpc("create_room_with_member", {
+        room_name: roomName.trim(),
+        room_lang: lang,
+      });
+
+      return room
+}
+
 export async function sendMessage(params: {
     roomId: string;
     senderId: string | null;
@@ -130,6 +140,7 @@ export function subscribeToMessages(
         supabase.removeChannel(channel);
     };
 }
+
 export function subscribeToRoomMember(
     roomId: string,
     onNewMember: () => void
