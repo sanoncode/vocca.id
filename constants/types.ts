@@ -19,6 +19,7 @@ type RoomData = {
   joined: boolean;
   created_by: string | null;
   userId: string | null;
+  currentUserLang: string | null
 };
 
 type Message = {
