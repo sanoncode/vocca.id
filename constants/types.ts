@@ -5,6 +5,14 @@ type Avatar = {
     avatar_url: string;
 };
 
+type Room = {
+  created_at: string;
+  created_by: string | null;
+  id: string;
+  member_count: number;
+  name: string;
+};
+
 type RoomData = {
   roomTitle: string;
   avatars: Avatar[];
@@ -33,9 +41,19 @@ type ChatRoomContentProps = {
 }
 
 
+type RoomList = {
+  chats: Room[];
+  groups: Room[];
+  userId: string | null,
+  userName: string | null
+};
+
+
 export type {
     Avatar,
+    Room,
     RoomData,
+    RoomList,
     Message,
     GetMessagesResponse,
     ChatRoomContentProps
