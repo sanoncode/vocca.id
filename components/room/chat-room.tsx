@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
-import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 // import { Button } from "../../ui/button";
 import ChatRoomHeader from "./chat-room-header";
 import ChatRoomContent from "./chat-room-content";
 import JoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
-import { addMember, getMessages, getRoomData, sendMessage, subscribeToMessages } from "@/services/chat-room-services";
+import { addMember, getMessages, getRoomData, sendMessage, subscribeToMessages, subscribeToRoomMember } from "@/services/chat-room-services";
 import { Avatar, Message } from "@/constants/types";
 
 
@@ -70,6 +68,9 @@ const ChatRoom = ({ roomId }: roomId) => {
     }
     await addMember(member)
     setJoined(true);
+    
+    await initializeRoom();
+    await fetchMessages();
     setJoinLoading(false)
 
   };
@@ -80,11 +81,25 @@ const ChatRoom = ({ roomId }: roomId) => {
     const unsubscribe = subscribeToMessages(
       roomId,
       async () => {
-        console.log("New message detected");
+
         await fetchMessages() 
       })
     return unsubscribe
+    
 
+  }, [roomId]);
+
+   useEffect(() => {
+    fetchMessages();
+
+    const unsubscribe = subscribeToRoomMember(
+      roomId,
+      async () => {
+        const { avatars } = await getRoomData(roomId)
+        setAvatars(avatars)
+      })
+    return unsubscribe
+    
 
   }, [roomId]);
 

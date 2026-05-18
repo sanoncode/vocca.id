@@ -5,101 +5,34 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 
 import { Search } from "lucide-react";
 
-import ChatSidebar from "./sidebar-chat"
-import GroupSidebar from "./sidebar-groups"
-import SideLogout from './side-logout-button'
+import ChatSidebar from "./sidebar-chat";
+import GroupSidebar from "./sidebar-groups";
+import SideLogout from "./side-logout-button";
 import CreateButtonSideBar from "./sidebar-create-button";
-import { createClient } from "@/lib/supabase/client";
-import { useEffect, useMemo, useState } from "react";
-
-
-type Room = {
-  created_at: string;
-  created_by: string | null;
-  id: string;
-  member_count: number;
-  name: string;
-};
+import { useEffect, useState } from "react";
+import { getRoomList, subscribeToRooms } from "@/services/side-bar-services";
+import { Room } from "@/constants/types";
 
 type user = {
-  id?: string,
-  name: string,
-}
+  id: string | null;
+  name: string | null;
+};
 
 export default function Sidebar() {
-
-    const [user, setUser] = useState<user | null>(null)
-    const [room, setRoom] = useState<Room[]>([])
-    const [rooms, setRooms] = useState<Room[]>([])
-    const supabase = useMemo(() => createClient(), []);
+  const [user, setUser] = useState<user | null>(null);
+  const [room, setRoom] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
 
   const fetchRoom = async () => {
+    const { chats, groups, userId, userName } = await getRoomList();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    
-    const userId = user?.id;
-    const userName = user?.user_metadata.full_name
-
-   const currUser = {
+    const currUser = {
       id: userId,
-      name: userName
-   }
-
-  setUser(currUser ?? null)
-
-    const { data } = await supabase
-      .from("room_members")
-      .select(
-        `
-            room_id,
-            rooms (
-            id,
-            name,
-            created_by,
-            created_at
-            )
-        `,
-      )
-      .eq("user_id", userId);
-
-
-    const roomIds = data?.map((item) => item.room_id) ?? [];
-
-    const { data: members } = await supabase
-      .from("room_members")
-      .select("room_id")
-      .in("room_id", roomIds);
-
-    const counts = members?.reduce(
-        (acc, row) => {
-          acc[row.room_id] = (acc[row.room_id] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>,
-      ) ?? {};
-
-    
-    const rooms: Room[] = data?.map((item) => {
-        const room = Array.isArray(item.rooms)
-        ? item.rooms[0]
-        : item.rooms;
-
-        return {
-        id: room?.id ?? "",
-        name: room?.name ?? "Untitled Room",
-        created_at: room?.created_at ?? "",
-        created_by: room?.created_by ?? null,
-        member_count: counts[item.room_id] || 0,
-        };
-    }) ?? [];
-
-    const chats = rooms.filter((room) => room.member_count <= 2);
-    const groups = rooms.filter((room) => room.member_count > 2);
-      
-    setRoom(chats)
-    setRooms(groups)
+      name: userName,
+    };
+    setUser(currUser ?? null);
+    setRoom(chats);
+    setRooms(groups);
   };
 
   useEffect(() => {
@@ -107,28 +40,14 @@ export default function Sidebar() {
   }, []);
 
   useEffect(() => {
-  if (!user?.id) return;
+    if (!user?.id) return;
 
-  const channel = supabase
-    .channel(`sidebar-${user.id}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "room_members",
-        filter: `user_id=eq.${user.id}`,
-      },
-      async () => {
-        await fetchRoom();
-      }
-    )
-    .subscribe();
+    const unsubscribe = subscribeToRooms(user.id, async () => {
+      await fetchRoom();
+    });
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [user?.id]);
+    return unsubscribe
+  }, [user?.id]);
 
   return (
     <aside className="w-[360px] border-r flex flex-col">
@@ -155,7 +74,7 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         <ChatSidebar rooms={room} />
 
-        <GroupSidebar rooms={rooms}/>
+        <GroupSidebar rooms={rooms} />
       </div>
 
       {/* Footer */}
