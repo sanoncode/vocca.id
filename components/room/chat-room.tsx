@@ -17,6 +17,7 @@ type roomId = {
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [lang, setLang] = useState("");
+  const [currentUserLang, setCurrentUserLang] = useState<string | null>("")
   const [joinLoading, setJoinLoading] = useState(false)
   const [joined, setJoined] = useState<boolean | null>(null);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
@@ -26,9 +27,10 @@ const ChatRoom = ({ roomId }: roomId) => {
   const [input, setInput] = useState("");
 
   const initializeRoom = async () => {
-    const { roomTitle, avatars, joined, created_by, userId } = await getRoomData(roomId)
+    const { roomTitle, avatars, joined, created_by, userId, currentUserLang } = await getRoomData(roomId)
 
     setUserId(userId);
+    setCurrentUserLang(currentUserLang);
     setAvatars(avatars ?? []);
     setRoomTitle(roomTitle)
     setRoomHost(created_by)
@@ -52,7 +54,7 @@ const ChatRoom = ({ roomId }: roomId) => {
       roomId: roomId,
       senderId: userId,
       text: input,
-      originalLang: "id",
+      originalLang: currentUserLang,
     }
 
     await sendMessage(newMessage)
@@ -68,7 +70,7 @@ const ChatRoom = ({ roomId }: roomId) => {
     }
     await addMember(member)
     setJoined(true);
-    
+
     await initializeRoom();
     await fetchMessages();
     setJoinLoading(false)

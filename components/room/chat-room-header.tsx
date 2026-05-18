@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { UserRoundPlus } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import ChatRoomInviteButton from "./chat-room-invite-button";
