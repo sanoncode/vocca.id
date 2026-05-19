@@ -10,7 +10,7 @@ import GroupSidebar from "./sidebar-groups";
 import SideLogout from "./side-logout-button";
 import CreateButtonSideBar from "./sidebar-create-button";
 import { useEffect, useState } from "react";
-import { getRoomList, subscribeToRooms } from "@/services/side-bar-services";
+import { getRoomList, subscribeToRooms } from "@/services/client/side-bar-services";
 import { Room } from "@/constants/types";
 
 type user = {

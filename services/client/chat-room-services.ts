@@ -1,0 +1,215 @@
+import { Avatar, GetMessagesResponse, RoomData } from "@/constants/types";
+import { createClient } from "@/lib/supabase/client";
+import { getCurrentUser } from "./user-services";
+
+
+const supabase = createClient();
+
+export async function getRoomData(roomId: string): Promise<RoomData> {
+  const user = await getCurrentUser();
+  const currentUserId = user?.id ?? null;
+
+  if (!currentUserId) {
+    return {
+      roomTitle: "",
+      avatars: [],
+      joined: false,
+      created_by: null,
+      userId: null,
+      currentUserLang: null,
+    };
+  }
+
+  const { data: preview, error: roomError } = await supabase.rpc(
+    "get_room_preview",
+    {
+      room_id: roomId,
+    },
+  );
+  if (roomError) throw roomError;
+
+  // 2. Ambil avatar member
+  const { data: members, error: membersError } = await supabase
+    .from("room_members")
+    .select("user_id,profiles(id,name,avatar_url)")
+    .eq("room_id", roomId)
+    .order("joined_at", { ascending: true });
+
+  if (membersError) throw membersError;
+
+  const avatars: Avatar[] =
+    members?.map((member) => Object.assign(member.profiles)) ?? [];
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("room_members")
+    .select("user_id,language")
+    .eq("room_id", roomId)
+    .eq("user_id", currentUserId)
+    .maybeSingle();
+
+  console.log(membership, "member");
+
+  if (membershipError) throw membershipError;
+
+  return {
+    roomTitle: preview[0].room_title,
+    avatars,
+    joined: !!membership,
+    created_by: preview[0].room_created_by,
+    userId: currentUserId,
+    currentUserLang: membership?.language,
+  };
+}
+
+export async function getMessages(
+  roomId: string,
+  language: string | null,
+): Promise<GetMessagesResponse> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select(
+      `*,sender:profiles (id,name,avatar_url),translations:message_translations (
+        translated_text,
+        target_lang
+      )`,
+    )
+    .eq("room_id", roomId)
+    .eq("translations.target_lang", language)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+
+  const messages =
+    data?.map((message) => ({
+      ...message,
+      display_text: message.translations?.[0]?.translated_text ?? message.text,
+    })) ?? [];
+
+  console.log(messages, "messages");
+
+  return {
+    messages,
+  };
+}
+
+export async function createRoom(params: { roomName: string; lang: string }) {
+  const { roomName, lang } = params;
+  const { data: room } = await supabase.rpc("create_room_with_member", {
+    room_name: roomName.trim(),
+    room_lang: lang,
+  });
+
+  return room;
+}
+
+export async function sendMessage(params: {
+  roomId: string;
+  senderId: string | null;
+  text: string;
+  originalLang: string | null;
+}) {
+  const { roomId, senderId, text, originalLang } = params;
+
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      room_id: roomId,
+      sender_id: senderId,
+      text,
+      original_lang: originalLang,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+
+  fetch("/api/translate-message", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messageId: data.id,
+    }),
+  }).catch((error) => {
+    console.error("Failed to trigger translation:", error);
+  });
+}
+
+export async function addMember(params: {
+  roomId: string;
+  userId: string;
+  language: string;
+}) {
+  const { roomId, userId, language } = params;
+  const { error } = await supabase.from("room_members").insert({
+    room_id: roomId,
+    user_id: userId,
+    language: language,
+  });
+  if (error) throw error;
+}
+
+export function subscribeToMessages(roomId: string, onNewMessage: () => void) {
+  const channel = supabase
+    .channel(`room-${roomId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `room_id=eq.${roomId}`,
+      },
+      () => {
+        onNewMessage();
+      },
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "message_translations",
+      },
+      onNewMessage,
+    )
+
+    // Translation di-update
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "message_translations",
+      },
+      onNewMessage,
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+export function subscribeToRoomMember(roomId: string, onNewMember: () => void) {
+  const channel = supabase
+    .channel(`room-members-${roomId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "room_members",
+        filter: `room_id=eq.${roomId}`,
+      },
+      () => {
+        onNewMember();
+      },
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}

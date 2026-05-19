@@ -6,7 +6,7 @@ import ChatRoomHeader from "./chat-room-header";
 import ChatRoomContent from "./chat-room-content";
 import JoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
-import { addMember, getMessages, getRoomData, sendMessage, subscribeToMessages, subscribeToRoomMember } from "@/services/chat-room-services";
+import { addMember, getMessages, getRoomData, sendMessage, subscribeToMessages, subscribeToRoomMember } from "@/services/client/chat-room-services";
 import { Avatar, Message } from "@/constants/types";
 
 
@@ -42,7 +42,7 @@ const ChatRoom = ({ roomId }: roomId) => {
   };
 
   const fetchMessages = async () => {
-    const { messages } = await getMessages(roomId)
+    const { messages } = await getMessages(roomId, currentUserLang)
 
     setMessages(messages || []);
   };
