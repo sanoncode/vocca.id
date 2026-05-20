@@ -25,21 +25,23 @@ export async function getUnTranslatedMessages(
   const supabase = await createClient();
   const { data: messages, error: messagesError } = await supabase
     .from("messages")
-    .select("id,text,original_lang,message_translations!left(id)")
-    .eq("id", roomId)
-    .neq("original_lang", targetLang)
-    .eq("message_translations.target_lang", targetLang);
+    .select(`id,text,original_lang,translations:message_translations(translated_text, target_lang)`)
+    .eq("room_id", roomId)
 
-    const filteredMessages = messages?.map((message) => { return message.message_translations.length === 0}).map((msg: any) =>({
-      id: msg.id,
-    text: msg.text,
-    original_lang: msg.original_lang
-    })) || []
 
+  // const filteredMessages = messages?.filter((msg: any) => {
+  //   return !msg.translations || msg.translations.length === 0;
+  // }).map((msg: any) => ({
+  //   id: msg.id,
+  //   text: msg.text,
+  //   original_lang: msg.original_lang
+  // })) || [];
+
+  // console.log(JSON.stringify(filteredMessages, null, 2), 'filtered message')
 
 
   return {
-    messages: filteredMessages,
+    messages,
     messagesError,
   };
 }
@@ -50,7 +52,6 @@ export async function getMembers(roomId: string) {
     .from("room_members")
     .select("user_id,language")
     .eq("room_id", roomId);
-
   return {
     members,
     membersError,

@@ -108,7 +108,7 @@ const ChatRoom = ({ roomId }: roomId) => {
       userId,
       language: lang,
     };
-    console.log(member,'member')
+
     await addMember(member);
     setJoined(true);
 
