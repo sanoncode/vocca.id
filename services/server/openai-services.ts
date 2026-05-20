@@ -1,4 +1,4 @@
-import "server-only";
+'use server'
 import OpenAI from "openai";
 
 const client = new OpenAI({

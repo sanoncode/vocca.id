@@ -63,7 +63,7 @@ const ChatRoomContent = ({ messages, userId }: ChatRoomContentProps) => {
                     : " border-zinc-800 rounded-bl-sm"
                 }`}
               >
-                {msg.display_text}
+                {isMe ? msg.text : msg.display_text}
               </div>
 
               {/* Timestamp + Status */}

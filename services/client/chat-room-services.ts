@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Avatar, GetMessagesResponse, RoomData } from "@/constants/types";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "./user-services";
-
 
 const supabase = createClient();
 
@@ -47,8 +47,6 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
     .eq("user_id", currentUserId)
     .maybeSingle();
 
-  console.log(membership, "member");
-
   if (membershipError) throw membershipError;
 
   return {
@@ -68,13 +66,12 @@ export async function getMessages(
   const { data, error } = await supabase
     .from("messages")
     .select(
-      `*,sender:profiles (id,name,avatar_url),translations:message_translations (
+      `*,sender:profiles (id,name,avatar_url),translations:message_translations(
         translated_text,
         target_lang
       )`,
     )
     .eq("room_id", roomId)
-    .eq("translations.target_lang", language)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
@@ -82,10 +79,10 @@ export async function getMessages(
   const messages =
     data?.map((message) => ({
       ...message,
-      display_text: message.translations?.[0]?.translated_text ?? message.text,
+      display_text: message.translations.find(
+        (t: any) => t.target_lang === language,
+      )?.translated_text,
     })) ?? [];
-
-  console.log(messages, "messages");
 
   return {
     messages,
@@ -122,18 +119,9 @@ export async function sendMessage(params: {
     .single();
 
   if (error) throw error;
+  if (!data) return;
 
-  fetch("/api/translate-message", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messageId: data.id,
-    }),
-  }).catch((error) => {
-    console.error("Failed to trigger translation:", error);
-  });
+  await fetchTranslateAPI(data.id);
 }
 
 export async function addMember(params: {
@@ -150,6 +138,44 @@ export async function addMember(params: {
   if (error) throw error;
 }
 
+export async function fetchTranslateAPI(messageId: string): Promise<void> {
+  const response = await fetch("/api/translate-message", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messageId
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+
+    throw new Error(error?.error || "Failed to translate message");
+  }
+}
+
+export async function fetchCatchUpTranslateAPI(roomId: string, catchUpLang: string): Promise<void> {
+  
+ const response = await fetch("/api/translate-message", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      roomId,
+      catchUpLang
+    }),
+  });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+
+      throw new Error(error?.error || "Failed to CatchUp message");
+    }
+}
+
 export function subscribeToMessages(roomId: string, onNewMessage: () => void) {
   const channel = supabase
     .channel(`room-${roomId}`)
@@ -164,26 +190,6 @@ export function subscribeToMessages(roomId: string, onNewMessage: () => void) {
       () => {
         onNewMessage();
       },
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "message_translations",
-      },
-      onNewMessage,
-    )
-
-    // Translation di-update
-    .on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: "message_translations",
-      },
-      onNewMessage,
     )
     .subscribe();
 
@@ -209,6 +215,29 @@ export function subscribeToRoomMember(roomId: string, onNewMember: () => void) {
     )
     .subscribe();
 
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
+
+export function subscribeToMessageTranslations(
+  roomId: string,
+  onNewMessage: () => void,
+) {
+  const channel = supabase
+    .channel(`room-translation-${roomId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "message_translations",
+      },
+      () => {
+        onNewMessage();
+      },
+    )
+    .subscribe();
   return () => {
     supabase.removeChannel(channel);
   };

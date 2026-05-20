@@ -1,26 +1,8 @@
-import "server-only";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use server";
 import { filterMember, filterMessage } from "@/constants/types";
 import { createClient } from "@/lib/supabase/server";
 import { translateText } from "./openai-services";
-
-
-export async function translateMessage(messageId: string): Promise<void> {
-  const response = await fetch("/api/translate-message", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messageId,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => null);
-
-    throw new Error(error?.error || "Failed to translate message");
-  }
-}
 
 export async function getMessage(messageId: string) {
   const supabase = await createClient();
@@ -33,6 +15,32 @@ export async function getMessage(messageId: string) {
   return {
     message,
     messageError,
+  };
+}
+
+export async function getUnTranslatedMessages(
+  roomId: string,
+  targetLang: string,
+) {
+  const supabase = await createClient();
+  const { data: messages, error: messagesError } = await supabase
+    .from("messages")
+    .select("id,text,original_lang,message_translations!left(id)")
+    .eq("id", roomId)
+    .neq("original_lang", targetLang)
+    .eq("message_translations.target_lang", targetLang);
+
+    const filteredMessages = messages?.map((message) => { return message.message_translations.length === 0}).map((msg: any) =>({
+      id: msg.id,
+    text: msg.text,
+    original_lang: msg.original_lang
+    })) || []
+
+
+
+  return {
+    messages: filteredMessages,
+    messagesError,
   };
 }
 
@@ -49,7 +57,10 @@ export async function getMembers(roomId: string) {
   };
 }
 
-export function getFilterLang(members: filterMember[], message: filterMessage) {
+export async function getFilterLang(
+  members: filterMember[],
+  message: filterMessage,
+) {
   const filterLangs = members.filter(
     (member) =>
       member.user_id !== message.sender_id &&
@@ -73,28 +84,23 @@ export async function getTranslated(params: {
   const supabase = await createClient();
   const { text, originalLang, targetLang, messageId } = params;
 
-  const result = await translateText(
-        text,
-        originalLang,
-        targetLang
-      )
+  const result = await translateText(text, originalLang, targetLang);
 
-      const { error: translateError } = await supabase
-      .from('message_translation')
-      .upsert({
+  const { error: translateError } = await supabase
+    .from("message_translations")
+    .upsert(
+      {
         message_id: messageId,
         target_lang: targetLang,
-        translated_text: result
-      },{
-        onConflict: 'message_id,target_lang'
-      }
-    )
+        translated_text: result,
+      },
+      {
+        onConflict: "message_id,target_lang",
+      },
+    );
 
-    return {
-        result,
-        translateError
-        
-    }
-
-
+  return {
+    result,
+    translateError,
+  };
 }
