@@ -88,17 +88,21 @@ const ChatRoom = ({ roomId }: roomId) => {
 
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    
+    const inputTrimmed = input.trim()
+    
+    if (!inputTrimmed) return;
+    setInput("");
 
     const newMessage = {
       roomId: roomId,
       senderId: userId,
-      text: input,
+      text: inputTrimmed,
       originalLang: currentUserLang,
     };
 
     await sendMessage(newMessage);
-    setInput("");
+    
   };
 
   const handleJoin = async () => {
