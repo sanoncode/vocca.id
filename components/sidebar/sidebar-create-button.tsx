@@ -18,7 +18,7 @@ import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import SelectLangButton from "../select-lang-button";
-import { createRoom } from "@/services/client/chat-room-services";
+import { createRoom } from "@/services/supabase/client/chat-room-services";
 
 const CreateButtonSideBar = () => {
   const [open, setOpen] = useState(false);

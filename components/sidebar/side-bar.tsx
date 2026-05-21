@@ -10,7 +10,7 @@ import GroupSidebar from "./sidebar-groups";
 import SideLogout from "./side-logout-button";
 import CreateButtonSideBar from "./sidebar-create-button";
 import { useEffect, useState } from "react";
-import { getRoomList, subscribeToRooms } from "@/services/client/side-bar-services";
+import { getRoomList, subscribeToRooms } from "@/services/supabase/client/side-bar-services";
 import { Room } from "@/constants/types";
 
 type user = {
@@ -22,7 +22,7 @@ export default function Sidebar() {
   const [user, setUser] = useState<user | null>(null);
   const [room, setRoom] = useState<Room[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
-
+  
   const fetchRoom = async () => {
     const { chats, groups, userId, userName } = await getRoomList();
 

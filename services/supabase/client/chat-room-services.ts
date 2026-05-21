@@ -2,6 +2,7 @@
 import { Avatar, GetMessagesResponse, RoomData } from "@/constants/types";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "./user-services";
+import { fetchTranslateAPI } from "@/services/api/translate";
 
 const supabase = createClient();
 
@@ -12,6 +13,7 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
   if (!currentUserId) {
     return {
       roomTitle: "",
+      roomHost: "",
       avatars: [],
       joined: false,
       created_by: null,
@@ -31,14 +33,14 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
   // 2. Ambil avatar member
   const { data: members, error: membersError } = await supabase
     .from("room_members")
-    .select("user_id,profiles(id,name,avatar_url)")
+    .select("user_id,language,profiles(id,name,avatar_url)")
     .eq("room_id", roomId)
     .order("joined_at", { ascending: true });
 
   if (membersError) throw membersError;
 
   const avatars: Avatar[] =
-    members?.map((member) => Object.assign(member.profiles)) ?? [];
+    members?.map((member) => Object.assign({...member.profiles, lang_code: member.language})) ?? [];
 
   const { data: membership, error: membershipError } = await supabase
     .from("room_members")
@@ -51,9 +53,10 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
 
   return {
     roomTitle: preview[0].room_title,
+    roomHost: preview[0].room_created_by_id,
     avatars,
     joined: !!membership,
-    created_by: preview[0].room_created_by,
+    created_by: preview[0].room_created_by_name,
     userId: currentUserId,
     currentUserLang: membership?.language,
   };
@@ -99,6 +102,23 @@ export async function createRoom(params: { roomName: string; lang: string }) {
   return room;
 }
 
+export async function deleteRoom(roomId: string) {
+
+  const { data: room, error } = await supabase
+  .from('rooms')
+  .delete()
+  .eq("id",roomId)
+  .select()
+
+  if (error) {
+    console.error("❌ SUPABASE DELETE ERROR DETECTED:", error);
+    throw error;
+  }
+  console.log("✅ Sukses terhapus dari DB:", room);
+  
+  return room;
+}
+
 export async function sendMessage(params: {
   roomId: string;
   senderId: string | null;
@@ -138,44 +158,6 @@ export async function addMember(params: {
   if (error) throw error;
 }
 
-export async function fetchTranslateAPI(messageId: string): Promise<void> {
-  const response = await fetch("/api/translate-message", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messageId
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => null);
-
-    throw new Error(error?.error || "Failed to translate message");
-  }
-}
-
-export async function fetchCatchUpTranslateAPI(roomId: string, catchUpLang: string): Promise<void> {
-  
- const response = await fetch("/api/translate-message", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      roomId,
-      catchUpLang
-    }),
-  });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => null);
-
-      throw new Error(error?.error || "Failed to CatchUp message");
-    }
-}
-
 export function subscribeToMessages(roomId: string, onNewMessage: () => void) {
   const channel = supabase
     .channel(`room-${roomId}`)
@@ -204,7 +186,7 @@ export function subscribeToRoomMember(roomId: string, onNewMember: () => void) {
     .on(
       "postgres_changes",
       {
-        event: "INSERT",
+        event: "*",
         schema: "public",
         table: "room_members",
         filter: `room_id=eq.${roomId}`,

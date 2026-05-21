@@ -2,6 +2,7 @@ type Avatar = {
   id: string;
   name: string;
   avatar_url: string;
+  lang_code:string;
 };
 
 type Room = {
@@ -20,6 +21,7 @@ type RoomMembers = {
 
 type RoomData = {
   roomTitle: string;
+  roomHost: string;
   avatars: Avatar[];
   joined: boolean;
   created_by: string | null;
