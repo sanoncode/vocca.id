@@ -50,6 +50,7 @@ const ChatRoomHeader = ({roomTitle, avatars}: props) => {
       </div>
 
       {/* Right Section */}
+      <ChatRoomInviteButton />
     <ChatRoomInviteButton />
     </header>
   );

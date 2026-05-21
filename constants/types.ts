@@ -1,8 +1,7 @@
-
 type Avatar = {
-    id: string;
-    name: string;
-    avatar_url: string;
+  id: string;
+  name: string;
+  avatar_url: string;
 };
 
 type Room = {
@@ -12,6 +11,12 @@ type Room = {
   member_count: number;
   name: string;
 };
+type RoomMembers = {
+    id: string,
+    room_id: string,
+    user_id: string,
+    language: string
+}
 
 type RoomData = {
   roomTitle: string;
@@ -19,7 +24,7 @@ type RoomData = {
   joined: boolean;
   created_by: string | null;
   userId: string | null;
-  currentUserLang: string | null
+  currentUserLang: string | null;
 };
 
 type Message = {
@@ -30,32 +35,42 @@ type Message = {
   original_lang: string;
   created_at: string;
   sender: Avatar;
+  display_text: string
 };
+
+
 
 type GetMessagesResponse = {
   messages: Message[];
 };
 
 type ChatRoomContentProps = {
-  messages: Message[]
-  userId: string | null
-}
-
+  messages: Message[];
+  userId: string | null;
+};
 
 type RoomList = {
   chats: Room[];
   groups: Room[];
-  userId: string | null,
-  userName: string | null
+  userId: string | null;
+  userName: string | null;
 };
 
+type filterMember = Pick<RoomMembers, "user_id" | 'language'> 
+
+type filterMessage = Pick<
+  Message,
+  "id" | "room_id" | "sender_id" | "text" | "original_lang"
+>;
 
 export type {
-    Avatar,
-    Room,
-    RoomData,
-    RoomList,
-    Message,
-    GetMessagesResponse,
-    ChatRoomContentProps
-}
+  Avatar,
+  Room,
+  RoomData,
+  RoomList,
+  Message,
+  GetMessagesResponse,
+  ChatRoomContentProps,
+  filterMessage,
+  filterMember
+};

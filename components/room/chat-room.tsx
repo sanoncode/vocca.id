@@ -6,9 +6,17 @@ import ChatRoomHeader from "./chat-room-header";
 import ChatRoomContent from "./chat-room-content";
 import JoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
-import { addMember, getMessages, getRoomData, sendMessage, subscribeToMessages, subscribeToRoomMember } from "@/services/chat-room-services";
+import {
+  addMember,
+  fetchCatchUpTranslateAPI,
+  getMessages,
+  getRoomData,
+  sendMessage,
+  subscribeToMessages,
+  subscribeToMessageTranslations,
+  subscribeToRoomMember,
+} from "@/services/client/chat-room-services";
 import { Avatar, Message } from "@/constants/types";
-
 
 type roomId = {
   roomId: string;
@@ -17,8 +25,8 @@ type roomId = {
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [lang, setLang] = useState("");
-  const [currentUserLang, setCurrentUserLang] = useState<string | null>("")
-  const [joinLoading, setJoinLoading] = useState(false)
+  const [currentUserLang, setCurrentUserLang] = useState<string | null>(null);
+  const [joinLoading, setJoinLoading] = useState(false);
   const [joined, setJoined] = useState<boolean | null>(null);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [roomTitle, setRoomTitle] = useState("");
@@ -26,39 +34,75 @@ const ChatRoom = ({ roomId }: roomId) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [input, setInput] = useState("");
 
-  const initializeRoom = async () => {
-    const { roomTitle, avatars, joined, created_by, userId, currentUserLang } = await getRoomData(roomId)
-
-    setUserId(userId);
-    setCurrentUserLang(currentUserLang);
-    setAvatars(avatars ?? []);
-    setRoomTitle(roomTitle)
-    setRoomHost(created_by)
-    if (joined) {
-      setJoined(true)
-    } else {
-      setJoined(false)
-    }
-  };
-
-  const fetchMessages = async () => {
-    const { messages } = await getMessages(roomId)
+   const fetchMessages = async (currentLang: string | null) => {
+    if(!roomId) return
+    const { messages } = await getMessages(roomId, currentLang);
 
     setMessages(messages || []);
   };
 
+
+  const initializeRoom = async () => {
+    const { roomTitle, avatars, joined, created_by, userId, currentUserLang } =
+      await getRoomData(roomId);
+
+    setUserId(userId);
+    setCurrentUserLang(currentUserLang);
+    setAvatars(avatars ?? []);
+    setRoomTitle(roomTitle);
+    setRoomHost(created_by);
+    setJoined(!!joined);
+    if (joined) {
+      await fetchMessages(currentUserLang);
+  };
+}
+
+
+  useEffect(() => {
+    initializeRoom();
+  }, [roomId]);
+
+  useEffect(()=>{
+    if(!roomId || !joined) return
+    
+    const unsubscribeTranslation = subscribeToMessageTranslations(roomId,() => {
+      fetchMessages(currentUserLang)
+    })
+
+    const unsubcribemessage = subscribeToMessages(roomId, () => {
+      fetchMessages(currentUserLang)
+    })
+
+    const unsubscribeRoomMember = subscribeToRoomMember(roomId, async () =>{
+          const { avatars } = await getRoomData(roomId)
+          setAvatars(avatars ?? []);
+    })
+
+    return () => {
+      unsubscribeTranslation()
+      unsubcribemessage()
+      unsubscribeRoomMember()
+    }
+
+  },[roomId, joined, currentUserLang])
+
+
   const handleSend = async () => {
-    if (!input.trim()) return;
+    
+    const inputTrimmed = input.trim()
+    
+    if (!inputTrimmed) return;
+    setInput("");
 
     const newMessage = {
       roomId: roomId,
       senderId: userId,
-      text: input,
+      text: inputTrimmed,
       originalLang: currentUserLang,
-    }
+    };
 
-    await sendMessage(newMessage)
-    setInput("");
+    await sendMessage(newMessage);
+    
   };
 
   const handleJoin = async () => {
@@ -66,48 +110,21 @@ const ChatRoom = ({ roomId }: roomId) => {
     const member = {
       roomId,
       userId,
-      language: lang
-    }
-    await addMember(member)
+      language: lang,
+    };
+
+    await addMember(member);
     setJoined(true);
 
+    try {
+      await fetchCatchUpTranslateAPI(roomId,lang)
+    } catch (e) {
+     console.error("Gagal memproses translasi riwayat lama", e); 
+    }
+
     await initializeRoom();
-    await fetchMessages();
-    setJoinLoading(false)
-
+    setJoinLoading(false);
   };
-
-  useEffect(() => {
-    fetchMessages();
-
-    const unsubscribe = subscribeToMessages(
-      roomId,
-      async () => {
-
-        await fetchMessages() 
-      })
-    return unsubscribe
-    
-
-  }, [roomId]);
-
-   useEffect(() => {
-    fetchMessages();
-
-    const unsubscribe = subscribeToRoomMember(
-      roomId,
-      async () => {
-        const { avatars } = await getRoomData(roomId)
-        setAvatars(avatars)
-      })
-    return unsubscribe
-    
-
-  }, [roomId]);
-
-  useEffect(() => {
-    initializeRoom();
-  }, [roomId]);
 
   if (joined === null) {
     return (
@@ -119,7 +136,14 @@ const ChatRoom = ({ roomId }: roomId) => {
 
   if (!joined) {
     return (
-      <JoinRoomOverlay roomTitle={roomTitle} creatorName={roomHost} language={lang} setLanguage={setLang} handleJoin={handleJoin} loading={joinLoading} />
+      <JoinRoomOverlay
+        roomTitle={roomTitle}
+        creatorName={roomHost}
+        language={lang}
+        setLanguage={setLang}
+        handleJoin={handleJoin}
+        loading={joinLoading}
+      />
     );
   }
   return (
