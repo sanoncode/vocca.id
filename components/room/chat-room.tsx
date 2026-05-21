@@ -8,15 +8,15 @@ import JoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
 import {
   addMember,
-  fetchCatchUpTranslateAPI,
   getMessages,
   getRoomData,
   sendMessage,
   subscribeToMessages,
   subscribeToMessageTranslations,
   subscribeToRoomMember,
-} from "@/services/client/chat-room-services";
+} from "@/services/supabase/client/chat-room-services";
 import { Avatar, Message } from "@/constants/types";
+import { fetchCatchUpTranslateAPI } from "@/services/api/translate";
 
 type roomId = {
   roomId: string;
@@ -29,6 +29,7 @@ const ChatRoom = ({ roomId }: roomId) => {
   const [joinLoading, setJoinLoading] = useState(false);
   const [joined, setJoined] = useState<boolean | null>(null);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
+  const [createdBy, setCreatedBy] = useState<string | null>("");
   const [roomTitle, setRoomTitle] = useState("");
   const [roomHost, setRoomHost] = useState<string | null>("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -43,14 +44,15 @@ const ChatRoom = ({ roomId }: roomId) => {
 
 
   const initializeRoom = async () => {
-    const { roomTitle, avatars, joined, created_by, userId, currentUserLang } =
+    const { roomTitle, roomHost, avatars, joined, created_by, userId, currentUserLang } =
       await getRoomData(roomId);
 
     setUserId(userId);
     setCurrentUserLang(currentUserLang);
     setAvatars(avatars ?? []);
     setRoomTitle(roomTitle);
-    setRoomHost(created_by);
+    setRoomHost(roomHost);
+    setCreatedBy(created_by);
     setJoined(!!joined);
     if (joined) {
       await fetchMessages(currentUserLang);
@@ -138,7 +140,7 @@ const ChatRoom = ({ roomId }: roomId) => {
     return (
       <JoinRoomOverlay
         roomTitle={roomTitle}
-        creatorName={roomHost}
+        creatorName={createdBy}
         language={lang}
         setLanguage={setLang}
         handleJoin={handleJoin}
@@ -150,7 +152,7 @@ const ChatRoom = ({ roomId }: roomId) => {
     <div className="flex flex-col h-full">
       {/* HEADER */}
 
-      <ChatRoomHeader roomTitle={roomTitle} avatars={avatars} />
+      <ChatRoomHeader roomHost={roomHost} roomId={roomId} roomTitle={roomTitle} avatars={avatars} userId={userId} />
 
       {/* CHAT CONTENT */}
       <ChatRoomContent userId={userId} messages={messages} />

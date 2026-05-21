@@ -4,6 +4,8 @@ import { filterMember, filterMessage } from "@/constants/types";
 import { createClient } from "@/lib/supabase/server";
 import { translateText } from "./openai-services";
 
+
+
 export async function getMessage(messageId: string) {
   const supabase = await createClient();
   const { data: message, error: messageError } = await supabase
@@ -27,18 +29,6 @@ export async function getUnTranslatedMessages(
     .from("messages")
     .select(`id,text,original_lang,translations:message_translations(translated_text, target_lang)`)
     .eq("room_id", roomId)
-
-
-  // const filteredMessages = messages?.filter((msg: any) => {
-  //   return !msg.translations || msg.translations.length === 0;
-  // }).map((msg: any) => ({
-  //   id: msg.id,
-  //   text: msg.text,
-  //   original_lang: msg.original_lang
-  // })) || [];
-
-  // console.log(JSON.stringify(filteredMessages, null, 2), 'filtered message')
-
 
   return {
     messages,
