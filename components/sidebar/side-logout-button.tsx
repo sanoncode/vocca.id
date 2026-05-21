@@ -11,7 +11,7 @@ const SideLogout = () => {
         const supabase = createClient()
             await supabase.auth.signOut()
             router.push('/')
-    }
+    } 
 
   return (
       <Button variant={'outline'} size={'lg'} onClick={() => handleLogout()}>

@@ -75,7 +75,7 @@ export function subscribeToRooms(userId: string, onNewRoom: () => void) {
     .on(
       "postgres_changes",
       {
-        event: "INSERT",
+        event: "*",
         schema: "public",
         table: "room_members",
         filter: `user_id=eq.${userId}`,

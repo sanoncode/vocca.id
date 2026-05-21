@@ -4,7 +4,7 @@ import {
   getMessage,
   getTranslated,
   getUnTranslatedMessages,
-} from "@/services/server/translate-services";
+} from "@/services/supabase/server/translate-services";
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,10 +14,6 @@ export async function POST(request: NextRequest) {
     console.log("=== API HIT ===");
     console.log("Payload yang masuk:", JSON.stringify(body, null, 2));
     const { messageId, roomId, catchUpLang } = body;
-
-    console.log(catchUpLang, 'catchupLang');
-    console.log(roomId, 'roomid');
-    console.log(messageId, 'messageId');
 
     if (roomId && catchUpLang) {
       console.log(`[CATCH-UP] Memproses room: ${roomId} ke bahasa: ${catchUpLang}`);
