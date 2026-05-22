@@ -14,6 +14,7 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
     return {
       roomTitle: "",
       roomHost: "",
+      roomNotFound: false,
       avatars: [],
       joined: false,
       created_by: null,
@@ -28,7 +29,20 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
       room_id: roomId,
     },
   );
-  if (roomError) throw roomError;
+  if (roomError) {
+    return {
+      roomTitle: "",
+      roomHost: "",
+      roomNotFound: roomError.message.includes('invalid'),
+      avatars: [],
+      joined: false,
+      created_by: null,
+      userId: null,
+      currentUserLang: null,
+
+    }
+  }
+
 
   // 2. Ambil avatar member
   const { data: members, error: membersError } = await supabase
@@ -40,7 +54,7 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
   if (membersError) throw membersError;
 
   const avatars: Avatar[] =
-    members?.map((member) => Object.assign({...member.profiles, lang_code: member.language})) ?? [];
+    members?.map((member) => Object.assign({ ...member.profiles, lang_code: member.language })) ?? [];
 
   const { data: membership, error: membershipError } = await supabase
     .from("room_members")
@@ -54,6 +68,7 @@ export async function getRoomData(roomId: string): Promise<RoomData> {
   return {
     roomTitle: preview[0].room_title,
     roomHost: preview[0].room_created_by_id,
+    roomNotFound: false,
     avatars,
     joined: !!membership,
     created_by: preview[0].room_created_by_name,
@@ -105,17 +120,17 @@ export async function createRoom(params: { roomName: string; lang: string }) {
 export async function deleteRoom(roomId: string) {
 
   const { data: room, error } = await supabase
-  .from('rooms')
-  .delete()
-  .eq("id",roomId)
-  .select()
+    .from('rooms')
+    .delete()
+    .eq("id", roomId)
+    .select()
 
   if (error) {
     console.error("❌ SUPABASE DELETE ERROR DETECTED:", error);
     throw error;
   }
   console.log("✅ Sukses terhapus dari DB:", room);
-  
+
   return room;
 }
 
