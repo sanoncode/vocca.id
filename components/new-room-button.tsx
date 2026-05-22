@@ -17,10 +17,15 @@ import { Loader2, Plus } from "lucide-react";
 
 import { useState } from "react";
 import Link from "next/link";
-import SelectLangButton from "../select-lang-button";
-import { createRoom } from "@/services/supabase/client/chat-room-services";
 
-const CreateButtonSideBar = () => {
+import { createRoom } from "@/services/supabase/client/chat-room-services";
+import SelectLangButton from "./select-lang-button";
+
+type props = {
+    title?: string 
+}
+
+const NewRoomButton = ({title}: props) => {
   const [open, setOpen] = useState(false);
 
   const [newRoomId, setNewRoomId] = useState<string | null>(null);
@@ -122,7 +127,7 @@ const CreateButtonSideBar = () => {
     return (
       <>
         <DialogHeader>
-          <DialogTitle>New Chat</DialogTitle>
+          <DialogTitle>🏠 New Room</DialogTitle>
           <DialogDescription>
             Create a new room and choose your language.
           </DialogDescription>
@@ -192,6 +197,7 @@ const CreateButtonSideBar = () => {
           size="sm"
         >
           <Plus size={16} />
+          {title}
         </Button>
       </DialogTrigger>
 
@@ -202,4 +208,4 @@ const CreateButtonSideBar = () => {
   );
 };
 
-export default CreateButtonSideBar;
+export default NewRoomButton;
