@@ -8,10 +8,10 @@ import { Search } from "lucide-react";
 import ChatSidebar from "./sidebar-chat";
 import GroupSidebar from "./sidebar-groups";
 import SideLogout from "./side-logout-button";
-import CreateButtonSideBar from "./sidebar-create-button";
 import { useEffect, useState } from "react";
 import { getRoomList, subscribeToRooms } from "@/services/supabase/client/side-bar-services";
 import { Room } from "@/constants/types";
+import NewRoomButton from "../new-room-button";
 
 type user = {
   id: string | null;
@@ -57,7 +57,7 @@ export default function Sidebar() {
           <h1 className="text-3xl font-bold">Hi, {user?.name}</h1>
           <div className="flex items-end gap-1 align-baseline">
             <ThemeSwitcher />
-            <CreateButtonSideBar />
+            <NewRoomButton  />
           </div>
         </div>
 
