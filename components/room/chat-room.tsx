@@ -17,6 +17,8 @@ import {
 } from "@/services/supabase/client/chat-room-services";
 import { Avatar, Message } from "@/constants/types";
 import { fetchCatchUpTranslateAPI } from "@/services/api/translate";
+import RoomNotFound from "./chat-room-not-found";
+
 
 type roomId = {
   roomId: string;
@@ -32,11 +34,13 @@ const ChatRoom = ({ roomId }: roomId) => {
   const [createdBy, setCreatedBy] = useState<string | null>("");
   const [roomTitle, setRoomTitle] = useState("");
   const [roomHost, setRoomHost] = useState<string | null>("");
+  const [roomNotFound, setRoomNotFound] =useState<boolean>(false)
   const [userId, setUserId] = useState<string | null>(null);
   const [input, setInput] = useState("");
 
    const fetchMessages = async (currentLang: string | null) => {
-    if(!roomId) return
+    if(!roomId) return 
+    
     const { messages } = await getMessages(roomId, currentLang);
 
     setMessages(messages || []);
@@ -44,7 +48,7 @@ const ChatRoom = ({ roomId }: roomId) => {
 
 
   const initializeRoom = async () => {
-    const { roomTitle, roomHost, avatars, joined, created_by, userId, currentUserLang } =
+    const { roomTitle, roomHost,roomNotFound, avatars, joined, created_by, userId, currentUserLang } =
       await getRoomData(roomId);
 
     setUserId(userId);
@@ -52,7 +56,9 @@ const ChatRoom = ({ roomId }: roomId) => {
     setAvatars(avatars ?? []);
     setRoomTitle(roomTitle);
     setRoomHost(roomHost);
+    setRoomNotFound(roomNotFound)
     setCreatedBy(created_by);
+  
     setJoined(!!joined);
     if (joined) {
       await fetchMessages(currentUserLang);
@@ -127,6 +133,10 @@ const ChatRoom = ({ roomId }: roomId) => {
     await initializeRoom();
     setJoinLoading(false);
   };
+  
+  if(roomNotFound){
+      return <RoomNotFound />
+  }
 
   if (joined === null) {
     return (

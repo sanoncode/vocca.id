@@ -22,6 +22,7 @@ type RoomMembers = {
 type RoomData = {
   roomTitle: string;
   roomHost: string;
+  roomNotFound: boolean;
   avatars: Avatar[];
   joined: boolean;
   created_by: string | null;
