@@ -1,6 +1,5 @@
 import NewRoomButton from "@/components/new-room-button"
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentUser } from "@/services/supabase/client/user-services"
 import { redirect } from "next/navigation";
 import { Suspense } from "react"
 
