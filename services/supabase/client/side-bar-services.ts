@@ -9,6 +9,15 @@ export async function getRoomList(): Promise<RoomList> {
   const currentUserId = user?.id ?? null;
   const currentUserName = user?.user_metadata.full_name ?? null;
 
+  if(!currentUserId){
+    return {
+      chats: [],
+      groups: [],
+      userId: null,
+      userName: null,
+    };
+  }
+
   const { data, error } = await supabase
     .from("room_members")
     .select(
@@ -30,8 +39,8 @@ export async function getRoomList(): Promise<RoomList> {
     return {
       chats: [],
       groups: [],
-      userId: null,
-      userName: null,
+      userId: currentUserId,
+      userName: currentUserName,
     };
   }
   const roomIds = data.map((item) => item.room_id);
@@ -78,7 +87,7 @@ export function subscribeToRooms(userId: string, onNewRoom: () => void) {
         event: "*",
         schema: "public",
         table: "room_members",
-        filter: `user_id=eq.${userId}`,
+
       },
       () => {
        
