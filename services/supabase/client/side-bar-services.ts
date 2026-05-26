@@ -1,10 +1,12 @@
-import { RoomList, Room } from "@/constants/types";
+
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "./user-services";
+import { RoomListResponse } from "@/constants/types/api";
+import { Room } from "@/constants/types/entities";
 
 const supabase = createClient();
 
-export async function getRoomList(): Promise<RoomList> {
+export async function getRoomList(): Promise<RoomListResponse> {
   const user = await getCurrentUser();
   const currentUserId = user?.id ?? null;
   const currentUserName = user?.user_metadata.full_name ?? null;
