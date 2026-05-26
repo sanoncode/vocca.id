@@ -9,17 +9,15 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { DeleteButtonProps } from "@/constants/types/props";
 import { deleteRoom } from "@/services/supabase/client/chat-room-services";
 
 import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type deleteButtonProps = {
-    roomId: string
-}
 
-const DeleteButton = ({roomId}: deleteButtonProps) => {
+const DeleteButton = ({roomId}: DeleteButtonProps) => {
 
     const router = useRouter()
     const [open, setOpen] = useState(false);

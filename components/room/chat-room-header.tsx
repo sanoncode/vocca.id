@@ -2,25 +2,11 @@ import Image from "next/image";
 import ChatRoomInviteButton from "./chat-room-invite-button";
 import DeleteButton from "../delete-chat-button";
 import { getFlagEmoji } from "@/lib/utils";
+import { ChatRoomHeaderProps } from "@/constants/types/props";
 
 
-type avatar = {
-    id:string,
-    name: string
-    avatar_url?: string,
-    lang_code:string,
-}
 
-
-type props = {
-    roomHost: string | null,
-    roomId: string,
-    roomTitle: string,
-    avatars?:avatar[],
-    userId: string | null
-}
-
-const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId}: props) => {
+const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId}: ChatRoomHeaderProps) => {
 
   
     const isRoomHost = (id: string | null) => id === roomHost

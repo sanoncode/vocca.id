@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Avatar, GetMessagesResponse, RoomData } from "@/constants/types";
+
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "./user-services";
 import { fetchTranslateAPI } from "@/services/api/translate";
+import { GetMessagesResponse, RoomDataResponse } from "@/constants/types/api";
+import { Avatar } from "@/constants/types/entities";
 
 const supabase = createClient();
 
-export async function getRoomData(roomId: string): Promise<RoomData> {
+export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
   const user = await getCurrentUser();
   const currentUserId = user?.id ?? null;
 

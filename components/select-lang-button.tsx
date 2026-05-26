@@ -2,15 +2,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import React from "react";
 
 import { languages } from "@/constants/language";
+import { SelectLangButtonprops } from "@/constants/types/props";
 
 
-type props = {
-    value: string,
-    onChange: (value: string) => void
-}
 
 
-const SelectLangButton = ({value, onChange}: props) => {
+const SelectLangButton = ({value, onChange}: SelectLangButtonprops) => {
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>

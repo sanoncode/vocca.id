@@ -4,18 +4,9 @@ import React from "react";
 import SideBarSection from "./side-bar-section";
 import SideBarItem from "./side-bar-item";
 import { MessageSquare } from "lucide-react";
+import { ChatSideBarProps } from "@/constants/types/props";
+import { Room } from "@/constants/types/entities";
 
-type props = {
-    created_at: string,
-    created_by: string | null,
-    id: string,
-    member_count: number,
-    name: string
-};
-
-type ChatSideBarProps = {
-  rooms: props[]
-}
 
 const ChatSidebar = ({rooms}: ChatSideBarProps) => {
 
@@ -25,7 +16,7 @@ const ChatSidebar = ({rooms}: ChatSideBarProps) => {
     <SideBarSection title="Chats" length={rooms.length} icon={<MessageSquare className="w-4 h-4" />}>
       {
         rooms.length > 0 ? ( 
-        rooms.map((room: props) => (
+        rooms.map((room: Room) => (
         <SideBarItem
           key={room.id}
           label={room.name}

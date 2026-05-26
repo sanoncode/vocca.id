@@ -12,11 +12,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log("=== API HIT ===");
-    console.log("Payload yang masuk:", JSON.stringify(body, null, 2));
+    console.log("Payload :", JSON.stringify(body, null, 2));
     const { messageId, roomId, catchUpLang } = body;
 
     if (roomId && catchUpLang) {
-      console.log(`[CATCH-UP] Memproses room: ${roomId} ke bahasa: ${catchUpLang}`);
+      console.log(`[CATCH-UP] Processing room: ${roomId} To Lang: ${catchUpLang}`);
       const { messages, messagesError } = await getUnTranslatedMessages(
         roomId,
         catchUpLang,
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (messageId) {
-      console.log(`[NORMAL CHAT] Memproses pesan tunggal ID: ${messageId}`);
+      console.log(`[NORMAL CHAT] Processing room: ${messageId}`);
       const { message, messageError } = await getMessage(messageId);
 
       if (messageError || !message) {

@@ -6,19 +6,10 @@ import SideBarSection from "./side-bar-section";
 import SideBarItem from "./side-bar-item";
 import { MessageSquare } from "lucide-react";
 
-type props = {
-  created_at: string;
-  created_by: string | null;
-  id: string;
-  member_count: number;
-  name: string;
-};
+import { ChatSideBarProps } from "@/constants/types/props";
+import { Room } from "@/constants/types/entities";
 
-type GroupSideBarProps = {
-  rooms: props[];
-};
-
-const GroupSidebar = ({ rooms }: GroupSideBarProps) => {
+const GroupSidebar = ({ rooms }: ChatSideBarProps) => {
   if (!rooms) {
     return <div>loading....</div>;
   }
@@ -27,7 +18,7 @@ const GroupSidebar = ({ rooms }: GroupSideBarProps) => {
     <>
     <SideBarSection title="Groups" length={rooms.length} icon={<MessageSquare className="w-4 h-4" />}>
       {rooms.length > 0 ? (
-        rooms.map((room: props) => (
+        rooms.map((room: Room) => (
           <SideBarItem
             key={room.id}
             label={room.name}
