@@ -10,15 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Globe, Users } from "lucide-react";
 import SelectLangButton from "../select-lang-button";
+import { JoinRoomOverlayProps } from "@/constants/types/props";
 
-type JoinRoomOverlayProps = {
-  roomTitle: string;
-  creatorName: string | null;
-  language: string;
-  setLanguage: (value: string) => void;
-  handleJoin: () => void;
-  loading?: boolean;
-};
 
 export default function JoinRoomOverlay({
   roomTitle,
