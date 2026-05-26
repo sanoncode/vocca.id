@@ -9,7 +9,7 @@ import { MessageSquare } from "lucide-react";
 import { ChatSideBarProps } from "@/constants/types/props";
 import { Room } from "@/constants/types/entities";
 
-const GroupSidebar = ({ rooms }: ChatSideBarProps) => {
+const GroupSidebar = ({ rooms }: ChatSideBarProps ) => {
   if (!rooms) {
     return <div>loading....</div>;
   }
