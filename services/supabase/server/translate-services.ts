@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
-import { filterMember, filterMessage } from "@/constants/types";
+
 import { createClient } from "@/lib/supabase/server";
 import { translateText } from "./openai-services";
+import { FilterMember, FilterMessage } from "@/constants/types/db";
 
 
 
@@ -49,8 +50,8 @@ export async function getMembers(roomId: string) {
 }
 
 export async function getFilterLang(
-  members: filterMember[],
-  message: filterMessage,
+  members: FilterMember[],
+  message: FilterMessage,
 ) {
   const filterLangs = members.filter(
     (member) =>

@@ -15,9 +15,10 @@ import {
   subscribeToMessageTranslations,
   subscribeToRoomMember,
 } from "@/services/supabase/client/chat-room-services";
-import { Avatar, Message } from "@/constants/types";
+
 import { fetchCatchUpTranslateAPI } from "@/services/api/translate";
 import RoomNotFound from "./chat-room-not-found";
+import { Avatar, Message } from "@/constants/types/entities";
 
 
 type roomId = {

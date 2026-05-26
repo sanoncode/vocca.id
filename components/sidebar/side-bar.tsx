@@ -10,8 +10,9 @@ import GroupSidebar from "./sidebar-groups";
 import SideLogout from "./side-logout-button";
 import { useEffect, useState } from "react";
 import { getRoomList, subscribeToRooms } from "@/services/supabase/client/side-bar-services";
-import { Room } from "@/constants/types";
+
 import NewRoomButton from "../new-room-button";
+import { Room } from "@/constants/types/entities";
 
 type user = {
   id: string | null;

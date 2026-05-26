@@ -1,7 +1,6 @@
+import { ChatRoomContentProps } from "@/constants/types/props";
 import Image from "next/image";
 import React, { useEffect, useRef } from "react";
-import { ChatRoomContentProps } from "@/constants/types";
-
 
 const ChatRoomContent = ({ messages, userId }: ChatRoomContentProps) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
