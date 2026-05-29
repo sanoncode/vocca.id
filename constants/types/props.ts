@@ -24,6 +24,23 @@ export type ChatRoomContentProps = {
 
 export type ChatSideBarProps = {
   rooms: Room[];
+  userId?: string | null
+};
+
+export type SideBarItemProps = {
+  label: string,
+  active?: boolean,
+  href: string,
+  createdBy: string | null,
+  userId?: string | null 
+};
+
+export type SideBarSectionProps = {
+  title: string;
+  icon: React.ReactNode;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  length: number;
 };
 
 export type DeleteButtonProps = {
