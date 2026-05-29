@@ -16,7 +16,7 @@ export async function getRoomList(): Promise<RoomListResponse> {
       chats: [],
       groups: [],
       userId: null,
-      userName: null,
+      userName: null, 
     };
   }
 
@@ -72,11 +72,17 @@ export async function getRoomList(): Promise<RoomListResponse> {
     };
   });
 
+  const roomHost = data.map((item) => {
+    const room = Array.isArray(item.rooms) ? item.rooms[0] : item.rooms
+    return room.created_by === currentUserId
+  })
+
   return {
     chats: rooms.filter((room) => room.member_count <= 2),
     groups: rooms.filter((room) => room.member_count > 2),
     userId: currentUserId,
     userName: currentUserName,
+   
   };
 }
 

@@ -3,12 +3,12 @@
 import React from "react";
 import SideBarSection from "./side-bar-section";
 import SideBarItem from "./side-bar-item";
-import { MessageSquare } from "lucide-react";
+import { Crown, MessageSquare } from "lucide-react";
 import { ChatSideBarProps } from "@/constants/types/props";
 import { Room } from "@/constants/types/entities";
 
 
-const ChatSidebar = ({rooms}: ChatSideBarProps) => {
+const ChatSidebar = ({rooms, userId}: ChatSideBarProps) => {
 
   if(!rooms){
     return <div>loading....</div>
@@ -17,11 +17,14 @@ const ChatSidebar = ({rooms}: ChatSideBarProps) => {
       {
         rooms.length > 0 ? ( 
         rooms.map((room: Room) => (
-        <SideBarItem
-          key={room.id}
-          label={room.name}
-          href={`/room/${room.id}`}
-        />
+
+          <SideBarItem
+            key={room.id}
+            label={room.name}
+            href={`/room/${room.id}`}
+            createdBy={room.created_by}
+            userId={userId}
+          />
       )))
     : <div className="text-muted-foreground">there is no chat</div>
   }

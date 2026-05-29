@@ -1,14 +1,7 @@
+import { SideBarSectionProps } from "@/constants/types/props";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react'
-
-type SectionProps = {
-  title: string;
-  icon: React.ReactNode;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-  length: number;
-};
 
 const SideBarSection = ({
   title,
@@ -16,7 +9,7 @@ const SideBarSection = ({
   defaultOpen = true,
   children,
   length
-}: SectionProps) => {
+}: SideBarSectionProps) => {
     const [open, setOpen] = useState(defaultOpen);
 
   return (

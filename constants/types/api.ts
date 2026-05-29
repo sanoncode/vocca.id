@@ -9,6 +9,7 @@ export type RoomListResponse = {
   groups: Room[];
   userId: string | null;
   userName: string | null;
+
 };
 
 export type RoomDataResponse = {

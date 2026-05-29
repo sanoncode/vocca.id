@@ -9,7 +9,7 @@ import { MessageSquare } from "lucide-react";
 import { ChatSideBarProps } from "@/constants/types/props";
 import { Room } from "@/constants/types/entities";
 
-const GroupSidebar = ({ rooms }: ChatSideBarProps ) => {
+const GroupSidebar = ({ rooms, userId }: ChatSideBarProps ) => {
   if (!rooms) {
     return <div>loading....</div>;
   }
@@ -23,6 +23,8 @@ const GroupSidebar = ({ rooms }: ChatSideBarProps ) => {
             key={room.id}
             label={room.name}
             href={`/room/${room.id}`}
+            userId={userId}
+            createdBy={room.created_by}
           />
         ))
       ) : (

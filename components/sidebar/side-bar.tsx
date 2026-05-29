@@ -73,9 +73,9 @@ export default function Sidebar() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        <ChatSidebar rooms={room} />
+        <ChatSidebar rooms={room} userId={user?.id} />
 
-        <GroupSidebar rooms={rooms} />
+        <GroupSidebar rooms={rooms} userId={user?.id} />
       </div>
 
       {/* Footer */}
