@@ -8,8 +8,11 @@ import { MessageSquare } from "lucide-react";
 
 import { ChatSideBarProps } from "@/constants/types/props";
 import { Room } from "@/constants/types/entities";
+import { useParams } from "next/navigation";
 
 const GroupSidebar = ({ rooms, userId }: ChatSideBarProps ) => {
+  const { id } = useParams()
+
   if (!rooms) {
     return <div>loading....</div>;
   }
@@ -20,6 +23,7 @@ const GroupSidebar = ({ rooms, userId }: ChatSideBarProps ) => {
       {rooms.length > 0 ? (
         rooms.map((room: Room) => (
           <SideBarItem
+            active={room.id === id}
             key={room.id}
             label={room.name}
             href={`/room/${room.id}`}

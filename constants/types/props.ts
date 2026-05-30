@@ -29,7 +29,7 @@ export type ChatSideBarProps = {
 
 export type SideBarItemProps = {
   label: string,
-  active?: boolean,
+  active: boolean,
   href: string,
   createdBy: string | null,
   userId?: string | null 
