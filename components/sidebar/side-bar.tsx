@@ -20,9 +20,11 @@ type user = {
 };
 
 export default function Sidebar() {
+
   const [user, setUser] = useState<user | null>(null);
   const [room, setRoom] = useState<Room[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  
   
   const fetchRoom = async () => {
     const { chats, groups, userId, userName } = await getRoomList();
