@@ -8,15 +8,19 @@ const SideBarItem = ({
   href,
   createdBy,
   userId,
+  active,
 }: SideBarItemProps) => {
   return (
-    <Button variant={"link"} className='w-full' size={'lg'}>
-      {createdBy === userId ? <Crown className="w-4 h-4" />: null}
-        <Link className='text-left' href={href}>
-            {label}
-      </Link>
-   </Button>
- 
+    <Link className='text-left' href={href}>
+      <Button
+        variant={"ghost"}
+        size={'lg'}
+        className={`w-full ${active ? 'border border-black dark:border-white' : ''}`}>
+        {createdBy === userId && <Crown className="w-4 h-4" />}
+        {label}
+      </Button>
+    </Link>
+
   )
 }
 
