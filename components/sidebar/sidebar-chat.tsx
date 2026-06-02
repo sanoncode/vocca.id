@@ -3,7 +3,6 @@
 import React from "react";
 import SideBarSection from "./side-bar-section";
 import SideBarItem from "./side-bar-item";
-import { Crown, MessageSquare } from "lucide-react";
 import { ChatSideBarProps } from "@/constants/types/props";
 import { Room } from "@/constants/types/entities";
 import { useParams } from "next/navigation";
@@ -12,11 +11,11 @@ import { useParams } from "next/navigation";
 const ChatSidebar = ({rooms, userId}: ChatSideBarProps) => {
 
   const {id} = useParams()
-  
+
   if(!rooms){
     return <div>loading....</div>
   } return (
-    <SideBarSection title="Chats" length={rooms.length} icon={<MessageSquare className="w-4 h-4" />}>
+    <SideBarSection title="Rooms" length={rooms.length}>
       {
         rooms.length > 0 ? ( 
         rooms.map((room: Room) => (
