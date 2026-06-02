@@ -5,7 +5,6 @@ import React, { useState } from 'react'
 
 const SideBarSection = ({
   title,
-  icon,
   defaultOpen = true,
   children,
   length
@@ -17,7 +16,7 @@ const SideBarSection = ({
       <Collapsible.Trigger asChild>
         <button className="w-full flex items-center justify-between py-3 text-sm font-medium">
           <div className="flex items-center gap-3">
-            <div className="">{icon}</div>
+            <div className="">🏠</div>
             <span>{title}</span>
             <span>({length})</span>
           </div>

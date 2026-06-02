@@ -6,7 +6,6 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Search } from "lucide-react";
 
 import ChatSidebar from "./sidebar-chat";
-import GroupSidebar from "./sidebar-groups";
 import SideLogout from "./side-logout-button";
 import { useEffect, useState } from "react";
 import { getRoomList, subscribeToRooms } from "@/services/supabase/client/side-bar-services";
@@ -22,21 +21,23 @@ type user = {
 export default function Sidebar() {
 
   const [user, setUser] = useState<user | null>(null);
-  const [room, setRoom] = useState<Room[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [searchRoom, setSearchRoom] = useState<string | ''>('');
   
   
   const fetchRoom = async () => {
-    const { chats, groups, userId, userName } = await getRoomList();
+    const { rooms, userId, userName } = await getRoomList();
 
     const currUser = {
       id: userId,
       name: userName,
     };
     setUser(currUser ?? null);
-    setRoom(chats);
-    setRooms(groups);
+    setRooms(rooms);
   };
+
+  const filteredRoom = rooms.filter((room) => room.name.toLowerCase().includes(searchRoom.toLowerCase()))
+  
 
   useEffect(() => {
     fetchRoom();
@@ -67,17 +68,17 @@ export default function Sidebar() {
         <div className="relative mt-6">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 " />
           <input
+            value={searchRoom}
             placeholder="Search..."
             className="w-full rounded-xl border border-zinc-800 pl-11 pr-4 py-3 outline-none placeholder:"
+            onChange={(e) => setSearchRoom(e.target.value)}
           />
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        <ChatSidebar rooms={room} userId={user?.id} />
-
-        <GroupSidebar rooms={rooms} userId={user?.id} />
+        <ChatSidebar rooms={filteredRoom} userId={user?.id} />
       </div>
 
       {/* Footer */}
