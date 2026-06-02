@@ -37,7 +37,6 @@ export type SideBarItemProps = {
 
 export type SideBarSectionProps = {
   title: string;
-  icon: React.ReactNode;
   defaultOpen?: boolean;
   children: React.ReactNode;
   length: number;

@@ -5,8 +5,7 @@ export type GetMessagesResponse = {
 };
 
 export type RoomListResponse = {
-  chats: Room[];
-  groups: Room[];
+  rooms: Room[];
   userId: string | null;
   userName: string | null;
 
