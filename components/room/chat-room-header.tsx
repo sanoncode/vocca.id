@@ -3,10 +3,11 @@ import ChatRoomInviteButton from "./chat-room-invite-button";
 import DeleteButton from "../delete-chat-button";
 import { getFlagEmoji } from "@/lib/utils";
 import { ChatRoomHeaderProps } from "@/constants/types/props";
+import ChatLeaveRoomButton from "./chat-leave-room";
 
 
 
-const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId}: ChatRoomHeaderProps) => {
+const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId, userName}: ChatRoomHeaderProps) => {
 
   
     const isRoomHost = (id: string | null) => id === roomHost
@@ -101,8 +102,8 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId}: ChatRoom
   {isRoomHost(userId) ? ( <div className="flex items-center gap-2">
     <ChatRoomInviteButton />
     <DeleteButton roomId={roomId} />
-  </div>) : null}
- 
+  </div>) : <ChatLeaveRoomButton roomId={roomId} userId={userId} userName={userName} />}
+
 </header>
   );
 };

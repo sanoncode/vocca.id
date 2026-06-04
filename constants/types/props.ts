@@ -15,11 +15,13 @@ export type ChatRoomHeaderProps = {
   roomTitle: string;
   avatars?: Avatar[];
   userId: string | null;
+  userName: string | null;
 };
 
 export type ChatRoomContentProps = {
   messages: Message[];
   userId: string | null;
+  userName: string | null;
 };
 
 export type ChatSideBarProps = {
@@ -43,7 +45,13 @@ export type SideBarSectionProps = {
 };
 
 export type DeleteButtonProps = {
-    roomId: string
+    roomId: string;
+}
+
+export type LeaveButtonProps = {
+    roomId: string;
+    userId: string | null;
+    userName: string | null;
 }
 
 export type SelectLangButtonprops = {

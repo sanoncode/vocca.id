@@ -97,6 +97,10 @@ const ChatRoomContent = ({ messages, userId }: ChatRoomContentProps) => {
           </div>
         );
       })}
+
+      {/* <div className="flex justify-center">
+        <span className="text-muted-foreground">Left the Chat</span>
+      </div> */}
     </div>
   );
 };

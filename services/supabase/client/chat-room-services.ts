@@ -11,8 +11,9 @@ const supabase = createClient();
 export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
   const user = await getCurrentUser();
   const currentUserId = user?.id ?? null;
+  const currentUserName = user?.user_metadata.full_name ?? null;
 
-  if (!currentUserId) {
+  if (!currentUserId && !currentUserName) {
     return {
       roomTitle: "",
       roomHost: "",
@@ -21,6 +22,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       joined: false,
       created_by: null,
       userId: null,
+      userName: null,
       currentUserLang: null,
     };
   }
@@ -40,6 +42,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       joined: false,
       created_by: null,
       userId: null,
+      userName: null,
       currentUserLang: null,
 
     }
@@ -74,7 +77,8 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     avatars,
     joined: !!membership,
     created_by: preview[0].room_created_by_name,
-    userId: currentUserId,
+    userId: currentUserId, 
+    userName:currentUserName,
     currentUserLang: membership?.language,
   };
 }
@@ -136,6 +140,25 @@ export async function deleteRoom(roomId: string) {
   return room;
 }
 
+export async function leaveRoom(roomId: string, userId: string | null) {
+
+  const { data: room, error } = await supabase
+    .from('room_members')
+    .delete()
+    .eq("room_id", roomId)
+    .eq("user_id", userId)
+    .select()
+
+
+  if (error) {
+    console.error("❌ SUPABASE DELETE ERROR DETECTED:", error);
+    return room;
+  }
+  console.log("✅ Sukses terhapus dari DB:", room);
+
+  return room;
+}
+
 export async function sendMessage(params: {
   roomId: string;
   senderId: string | null;
@@ -175,69 +198,3 @@ export async function addMember(params: {
   if (error) throw error;
 }
 
-export function subscribeToMessages(roomId: string, onNewMessage: () => void) {
-  const channel = supabase
-    .channel(`room-${roomId}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "messages",
-        filter: `room_id=eq.${roomId}`,
-      },
-      () => {
-        onNewMessage();
-      },
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}
-
-export function subscribeToRoomMember(roomId: string, onNewMember: () => void) {
-  const channel = supabase
-    .channel(`room-members-${roomId}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "room_members",
-        filter: `room_id=eq.${roomId}`,
-      },
-      () => {
-        onNewMember();
-      },
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}
-
-export function subscribeToMessageTranslations(
-  roomId: string,
-  onNewMessage: () => void,
-) {
-  const channel = supabase
-    .channel(`room-translation-${roomId}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "message_translations",
-      },
-      () => {
-        onNewMessage();
-      },
-    )
-    .subscribe();
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}
