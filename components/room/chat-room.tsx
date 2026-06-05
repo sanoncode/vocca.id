@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // import { Button } from "../../ui/button";
 import ChatRoomHeader from "./chat-room-header";
 import ChatRoomContent from "./chat-room-content";
@@ -11,15 +11,21 @@ import {
   getMessages,
   getRoomData,
   sendMessage,
-  subscribeToMessages,
-  subscribeToMessageTranslations,
-  subscribeToRoomMember,
 } from "@/services/supabase/client/chat-room-services";
 
 import { fetchCatchUpTranslateAPI } from "@/services/api/translate";
 import RoomNotFound from "./chat-room-not-found";
-import { Avatar, Message } from "@/constants/types/entities";
+import { Avatar, CurrentUser, Message } from "@/constants/types/entities";
 
+import {
+  broadcastUser,
+  subscribeToBroadcastUser,
+  subscribeToMessages,
+  subscribeToMessageTranslations,
+  subscribeToRoomMember,
+} from "@/services/supabase/client/chat-room-realtime";
+import { SystemMessage } from "@/constants/types/system-messages";
+import ChatRoomSystemMessages from "./chat-room-system-messages";
 
 type roomId = {
   roomId: string;
@@ -27,116 +33,173 @@ type roomId = {
 
 const ChatRoom = ({ roomId }: roomId) => {
   const [messages, setMessages] = useState<Message[]>([]);
+
   const [lang, setLang] = useState("");
   const [currentUserLang, setCurrentUserLang] = useState<string | null>(null);
+  const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
+  const [userTyping, setUserTyping] = useState<string[]>([]);
+  const [currentUser, setCurrentUser] = useState<CurrentUser>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joined, setJoined] = useState<boolean | null>(null);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [createdBy, setCreatedBy] = useState<string | null>("");
   const [roomTitle, setRoomTitle] = useState("");
   const [roomHost, setRoomHost] = useState<string | null>("");
-  const [roomNotFound, setRoomNotFound] =useState<boolean>(false)
-  const [userId, setUserId] = useState<string | null>(null);
+  const [roomNotFound, setRoomNotFound] = useState<boolean>(false);
   const [input, setInput] = useState("");
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
-   const fetchMessages = async (currentLang: string | null) => {
-    if(!roomId) return 
-    
+  const fetchMessages = async (currentLang: string | null) => {
+    if (!roomId) return;
+
     const { messages } = await getMessages(roomId, currentLang);
 
     setMessages(messages || []);
   };
 
-
   const initializeRoom = async () => {
-    const { roomTitle, roomHost,roomNotFound, avatars, joined, created_by, userId, currentUserLang } =
-      await getRoomData(roomId);
+    const {
+      roomTitle,
+      roomHost,
+      roomNotFound,
+      avatars,
+      joined,
+      created_by,
+      currentUser,
+      currentUserLang,
+    } = await getRoomData(roomId);
 
-    setUserId(userId);
+    setCurrentUser(currentUser);
     setCurrentUserLang(currentUserLang);
     setAvatars(avatars ?? []);
     setRoomTitle(roomTitle);
     setRoomHost(roomHost);
-    setRoomNotFound(roomNotFound)
+    setRoomNotFound(roomNotFound);
     setCreatedBy(created_by);
-  
+
     setJoined(!!joined);
     if (joined) {
       await fetchMessages(currentUserLang);
+    }
   };
-}
-
 
   useEffect(() => {
     initializeRoom();
   }, [roomId]);
 
-  useEffect(()=>{
-    if(!roomId || !joined) return
-    
-    const unsubscribeTranslation = subscribeToMessageTranslations(roomId,() => {
-      fetchMessages(currentUserLang)
-    })
+  useEffect(() => {
+    if (!roomId || !joined) return;
+
+    const unsubscribeTranslation = subscribeToMessageTranslations(
+      roomId,
+      () => {
+        fetchMessages(currentUserLang);
+      },
+    );
 
     const unsubcribemessage = subscribeToMessages(roomId, () => {
-      fetchMessages(currentUserLang)
-    })
+      fetchMessages(currentUserLang);
+    });
 
-    const unsubscribeRoomMember = subscribeToRoomMember(roomId, async () =>{
-          const { avatars } = await getRoomData(roomId)
-          setAvatars(avatars ?? []);
-    })
+    const unsubscribeRoomMember = subscribeToRoomMember(roomId, async () => {
+      const { avatars } = await getRoomData(roomId);
+      setAvatars(avatars ?? []);
+    });
+
+    const unsubscribeToBroadcastUser = subscribeToBroadcastUser(
+      roomId,
+      (payload) => {
+        handleBroadcast(payload);
+      },
+    );
 
     return () => {
-      unsubscribeTranslation()
-      unsubcribemessage()
-      unsubscribeRoomMember()
-    }
-
-  },[roomId, joined, currentUserLang])
-
+      unsubscribeTranslation();
+      unsubcribemessage();
+      unsubscribeRoomMember();
+      unsubscribeToBroadcastUser();
+    };
+  }, [roomId, joined, currentUserLang]);
 
   const handleSend = async () => {
-    
-    const inputTrimmed = input.trim()
-    
+    const inputTrimmed = input.trim();
+
     if (!inputTrimmed) return;
     setInput("");
 
     const newMessage = {
       roomId: roomId,
-      senderId: userId,
+      senderId: currentUser?.id,
       text: inputTrimmed,
       originalLang: currentUserLang,
     };
 
     await sendMessage(newMessage);
-    
+  };
+
+  const handleTyping =  (e: any) => {
+    const value = e.target.value;
+
+    setInput(value);
+
+    broadcastUser(roomId, currentUser?.name, "TYPING");
+
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+    }
+
+    typingTimeout.current = setTimeout(() => {
+      broadcastUser(roomId, currentUser?.name, "IDLE");
+    }, 2000);
   };
 
   const handleJoin = async () => {
-    if (!lang || !userId) return;
+    if (joinLoading) return;
+    if (!lang || !currentUser?.id) return;
     const member = {
       roomId,
-      userId,
+      userId: currentUser.id,
       language: lang,
     };
 
     await addMember(member);
+    await broadcastUser(roomId, currentUser?.name, "JOIN");
     setJoined(true);
 
     try {
-      await fetchCatchUpTranslateAPI(roomId,lang)
+      await fetchCatchUpTranslateAPI(roomId, lang);
     } catch (e) {
-     console.error("Gagal memproses translasi riwayat lama", e); 
+      console.error("Gagal memproses translasi riwayat lama", e);
     }
 
     await initializeRoom();
     setJoinLoading(false);
   };
-  
-  if(roomNotFound){
-      return <RoomNotFound />
+
+  const handleBroadcast = (payload: SystemMessage) => {
+    if (payload.userEvent === "JOIN" || payload.userEvent === "LEAVE") {
+      setSystemMessages((prev) => [...prev, payload]);
+    }
+    if (payload.userEvent === "TYPING") {
+      setUserTyping((prev) => {
+        if (prev.includes(payload.userName)) {
+          return prev;
+        }
+
+        return [...prev, payload.userName];
+      });
+    }
+    if (payload.userEvent === "IDLE") {
+      setUserTyping((prev) => prev.filter((name) => name !== payload.userName));
+    }
+
+    setTimeout(() => {
+      setSystemMessages([]);
+    }, 2000);
+  };
+
+  if (roomNotFound) {
+    return <RoomNotFound />;
   }
 
   if (joined === null) {
@@ -163,10 +226,22 @@ const ChatRoom = ({ roomId }: roomId) => {
     <div className="flex flex-col h-full">
       {/* HEADER */}
 
-      <ChatRoomHeader roomHost={roomHost} roomId={roomId} roomTitle={roomTitle} avatars={avatars} userId={userId} />
+      <ChatRoomHeader
+        roomHost={roomHost}
+        roomId={roomId}
+        roomTitle={roomTitle}
+        avatars={avatars}
+        currentUser={currentUser}
+      />
+
+      <ChatRoomSystemMessages systemMessages={systemMessages} />
 
       {/* CHAT CONTENT */}
-      <ChatRoomContent userId={userId} messages={messages} />
+      <ChatRoomContent
+        currentUser={currentUser}
+        messages={messages}
+        userTyping={userTyping}
+      />
 
       {/* INPUT AREA */}
       <div className="p-4">
@@ -175,7 +250,7 @@ const ChatRoom = ({ roomId }: roomId) => {
             className="flex-1 bg-transparent text-sm outline-none py-2"
             placeholder="Enter message..."
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => handleTyping(e)}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSend();
             }}

@@ -12,12 +12,12 @@ export type RoomListResponse = {
 };
 
 export type RoomDataResponse = {
-     roomTitle: string ,
-      roomHost: string,
-      roomNotFound: boolean,
-      avatars: Avatar[],
-      joined: boolean,
-      created_by: string | null,
-      userId: string | null,
-      currentUserLang: string | null,
+     roomTitle: string;
+      roomHost: string;
+      roomNotFound: boolean;
+      avatars: Avatar[];
+      joined: boolean;
+      created_by: string | null;
+      currentUser: Pick<Avatar,  'avatar_url' | 'id' | 'name'> | null
+      currentUserLang: string | null;
 }
