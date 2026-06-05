@@ -1,4 +1,4 @@
-import { UserEvent } from "@/constants/types/system-messages";
+import { SystemMessage, UserEvent } from "@/constants/types/system-messages";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
@@ -71,25 +71,10 @@ export function subscribeToMessageTranslations(
     };
 }
 
-export async function broadcastUserJoin(
-    roomId: string,
-    userName: string | null,
-) {
-    const channel = supabase.channel(`room-members-${roomId}`)
 
-    await channel.send({
-        type: 'broadcast',
-        event: 'USER_JOIN',
-        payload: {
-            userName
-        }
-
-    })
-
-}
 export async function broadcastUser(
     roomId: string,
-    userName: string | null,
+    userName: string | null | undefined,
     userEvent: UserEvent
 ) {
     const channel = supabase.channel(`user-event-${roomId}`)
@@ -108,7 +93,7 @@ export async function broadcastUser(
 
 export function subscribeToBroadcastUser(
     roomId: string,
-    callback: (payload: any) => void,
+    callback: (payload: SystemMessage ) => void,
 ) {
     const channel = supabase
         .channel(`user-event-${roomId}`)

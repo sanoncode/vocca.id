@@ -1,7 +1,8 @@
 
-type systemMessageEvent = "INSERT" | "DELETE"
+export type UserEvent = "JOIN" | "LEAVE" | "TYPING" | "IDLE"
 
 export type SystemMessage = {
-    id: string;
-    event: systemMessageEvent;
+    
+    userEvent: UserEvent;
+    userName: string
 }

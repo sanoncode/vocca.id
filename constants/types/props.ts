@@ -1,4 +1,5 @@
 import { Avatar, Message, Room } from "./entities";
+import { SystemMessage } from "./system-messages";
 
 export type JoinRoomOverlayProps = {
   roomTitle: string;
@@ -14,20 +15,29 @@ export type ChatRoomHeaderProps = {
   roomId: string;
   roomTitle: string;
   avatars?: Avatar[];
-  userId: string | null;
-  userName: string | null;
+  currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
 };
 
 export type ChatRoomContentProps = {
   messages: Message[];
-  userId: string | null;
-  userName: string | null;
+  currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
+  userTyping: string[] 
 };
 
 export type ChatSideBarProps = {
   rooms: Room[];
   userId?: string | null
 };
+
+export type ChatBubbleProps ={
+  messageId: string,
+  messageAvatarUrl: string,
+  messageSenderName: string | null,
+  messageText: string,
+  messageDisplayText: string,
+  messageCreatedAt: string,
+  isMe: boolean
+}
 
 export type SideBarItemProps = {
   label: string,
@@ -50,11 +60,16 @@ export type DeleteButtonProps = {
 
 export type LeaveButtonProps = {
     roomId: string;
-    userId: string | null;
-    userName: string | null;
+    currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
 }
 
 export type SelectLangButtonprops = {
     value: string,
     onChange: (value: string) => void
 }
+
+export type SystemMessageProps = {
+  systemMessages: SystemMessage[] | null
+}
+
+

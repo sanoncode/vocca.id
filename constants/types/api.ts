@@ -18,7 +18,6 @@ export type RoomDataResponse = {
       avatars: Avatar[];
       joined: boolean;
       created_by: string | null;
-      userId: string | null;
-      userName: string | null;
+      currentUser: Pick<Avatar,  'avatar_url' | 'id' | 'name'> | null
       currentUserLang: string | null;
 }

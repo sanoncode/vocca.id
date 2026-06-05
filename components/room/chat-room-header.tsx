@@ -7,10 +7,9 @@ import ChatLeaveRoomButton from "./chat-leave-room";
 
 
 
-const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId, userName}: ChatRoomHeaderProps) => {
+const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, currentUser}: ChatRoomHeaderProps) => {
 
-  
-    const isRoomHost = (id: string | null) => id === roomHost
+  const isRoomHost =(id: string | null | undefined) => id === roomHost
 
   return (
     <header className="p-4 flex items-center justify-between border-b bg-background text-foreground">
@@ -28,7 +27,7 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId, userName}
         <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Host</span>
         <div className="flex -space-x-1.5">
           {avatars?.map((avatar) => (
-            isRoomHost(avatar.id) && (
+             isRoomHost(avatar.id) && (
               <div
                 key={avatar.id}
                 className="relative w-7 h-7 rounded-full border-2 border-background shadow-sm group"
@@ -37,7 +36,7 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId, userName}
                 {avatar.avatar_url ? (
                   <Image
                     src={avatar.avatar_url}
-                    alt={avatar.name}
+                    alt={avatar.name!}
                     width={28}
                     height={28}
                     className="w-full h-full rounded-full object-cover"
@@ -74,7 +73,7 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId, userName}
               {avatar.avatar_url ? (
                 <Image
                   src={avatar.avatar_url}
-                  alt={avatar.name}
+                  alt={avatar.name!}
                   width={32}
                   height={32}
                   className="w-full h-full rounded-full object-cover"
@@ -99,10 +98,10 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, userId, userName}
   </div>
 
   {/* Right Section: Action Buttons */}
-  {isRoomHost(userId) ? ( <div className="flex items-center gap-2">
+  { isRoomHost(currentUser?.id) ? ( <div className="flex items-center gap-2">
     <ChatRoomInviteButton />
     <DeleteButton roomId={roomId} />
-  </div>) : <ChatLeaveRoomButton roomId={roomId} userId={userId} userName={userName} />}
+  </div>) : <ChatLeaveRoomButton roomId={roomId} currentUser={currentUser} />}
 
 </header>
   );

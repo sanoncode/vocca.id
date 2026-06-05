@@ -11,9 +11,22 @@ const supabase = createClient();
 export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
   const user = await getCurrentUser();
   const currentUserId = user?.id ?? null;
-  const currentUserName = user?.user_metadata.full_name ?? null;
+  
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name,avatar_url")
+    .eq("id", currentUserId)
+    .single()
 
-  if (!currentUserId && !currentUserName) {
+    
+    const currentUser = {
+    id: currentUserId,
+    name: profile?.name,
+    avatar_url: profile?.avatar_url
+  }
+
+
+  if (!currentUserId) {
     return {
       roomTitle: "",
       roomHost: "",
@@ -21,8 +34,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       avatars: [],
       joined: false,
       created_by: null,
-      userId: null,
-      userName: null,
+      currentUser: null,
       currentUserLang: null,
     };
   }
@@ -41,8 +53,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       avatars: [],
       joined: false,
       created_by: null,
-      userId: null,
-      userName: null,
+      currentUser: null,
       currentUserLang: null,
 
     }
@@ -77,8 +88,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     avatars,
     joined: !!membership,
     created_by: preview[0].room_created_by_name,
-    userId: currentUserId, 
-    userName:currentUserName,
+    currentUser: currentUser,
     currentUserLang: membership?.language,
   };
 }
@@ -140,7 +150,7 @@ export async function deleteRoom(roomId: string) {
   return room;
 }
 
-export async function leaveRoom(roomId: string, userId: string | null) {
+export async function leaveRoom(roomId: string, userId: string | null | undefined) {
 
   const { data: room, error } = await supabase
     .from('room_members')
@@ -161,7 +171,7 @@ export async function leaveRoom(roomId: string, userId: string | null) {
 
 export async function sendMessage(params: {
   roomId: string;
-  senderId: string | null;
+  senderId: string | null | undefined;
   text: string;
   originalLang: string | null;
 }) {

@@ -17,7 +17,7 @@ import { Loader2, SquareArrowRightExit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const ChatLeaveRoomButton = ({ roomId, userId, userName }: LeaveButtonProps) => {
+const ChatLeaveRoomButton = ({ roomId, currentUser }: LeaveButtonProps) => {
 
     const router = useRouter()
     const [open, setOpen] = useState(false);
@@ -25,9 +25,9 @@ const ChatLeaveRoomButton = ({ roomId, userId, userName }: LeaveButtonProps) => 
 
     const handleLeave = async () => {
         setLeaveLoading(true)
-        const result = await leaveRoom(roomId, userId)
+        const result = await leaveRoom(roomId, currentUser?.id)
         if (result) {
-            broadcastUser(roomId, userName,'LEAVE')
+            broadcastUser(roomId, currentUser?.name,'LEAVE')
             setLeaveLoading(false)
             setOpen(false)
             router.push('/room')
