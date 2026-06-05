@@ -1,9 +1,11 @@
 export type Avatar = {
-  id: string;
-  name: string;
-  avatar_url: string;
+  id: string | null;
+  name: string | null;
+  avatar_url: string ;
   lang_code: string;
 };
+
+export type CurrentUser = Pick<Avatar,  'avatar_url' | 'id' | 'name'> | null
 
 export type Room = {
   id: string;
