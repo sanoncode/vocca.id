@@ -8,7 +8,7 @@ import { ChatSideBarProps } from "@/constants/types/props";
 import { Room } from "@/constants/types/entities";
 import { useParams } from "next/navigation";
 
-const GroupSidebar = ({ rooms, userId }: ChatSideBarProps ) => {
+const InvitedSidebar = ({ rooms, userId }: ChatSideBarProps ) => {
   const { id } = useParams()
 
   if (!rooms) {
@@ -17,7 +17,7 @@ const GroupSidebar = ({ rooms, userId }: ChatSideBarProps ) => {
 
   return (
     <>
-    <SideBarSection title="Groups" length={rooms.length}>
+    <SideBarSection title="Invited" length={rooms.length}>
       {rooms.length > 0 ? (
         rooms.map((room: Room) => (
           <SideBarItem
@@ -30,11 +30,11 @@ const GroupSidebar = ({ rooms, userId }: ChatSideBarProps ) => {
           />
         ))
       ) : (
-        <div className="text-muted-foreground">there is no groups</div>
+        <div className="text-muted-foreground">there is no invitations</div>
       )}
     </SideBarSection>
     </>
   );
 };
 
-export default GroupSidebar;
+export default InvitedSidebar;

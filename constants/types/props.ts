@@ -1,4 +1,4 @@
-import { Avatar, Message, Room } from "./entities";
+import { Avatar, CurrentUser, Message, Room } from "./entities";
 import { SystemMessage } from "./system-messages";
 
 export type JoinRoomOverlayProps = {
@@ -15,12 +15,12 @@ export type ChatRoomHeaderProps = {
   roomId: string;
   roomTitle: string;
   avatars?: Avatar[];
-  currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
+  currentUser: CurrentUser | null
 };
 
 export type ChatRoomContentProps = {
   messages: Message[];
-  currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
+  currentUser: CurrentUser | null
   userTyping: string[] 
 };
 
@@ -37,6 +37,11 @@ export type ChatBubbleProps ={
   messageDisplayText: string,
   messageCreatedAt: string,
   isMe: boolean
+}
+
+export type ChatRoomInviteButtonProps ={
+  userId: string | null | undefined
+  roomId: string,
 }
 
 export type SideBarItemProps = {
@@ -60,7 +65,7 @@ export type DeleteButtonProps = {
 
 export type LeaveButtonProps = {
     roomId: string;
-    currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
+    currentUser: CurrentUser | null
 }
 
 export type SelectLangButtonprops = {

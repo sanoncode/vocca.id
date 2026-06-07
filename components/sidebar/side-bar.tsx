@@ -8,10 +8,12 @@ import { Search } from "lucide-react";
 import ChatSidebar from "./sidebar-chat";
 import SideLogout from "./side-logout-button";
 import { useEffect, useState } from "react";
-import { getRoomList, subscribeToRooms } from "@/services/supabase/client/side-bar-services";
+import { getInvitedRoomList, getRoomList } from "@/services/supabase/client/side-bar-services";
 
 import NewRoomButton from "../new-room-button";
 import { Room } from "@/constants/types/entities";
+import { subscribeToRoomInvitations, subscribeToRooms } from "@/services/supabase/client/side-bar-realtime";
+import InvitedSidebar from "./sidebar-invited";
 
 type user = {
   id: string | null;
@@ -22,6 +24,7 @@ export default function Sidebar() {
 
   const [user, setUser] = useState<user | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [invitedRooms, setInvitedRooms] = useState<Room[]>([]);
   const [searchRoom, setSearchRoom] = useState<string | ''>('');
   
   
@@ -36,21 +39,38 @@ export default function Sidebar() {
     setRooms(rooms);
   };
 
+   const fetchInvitedRooms = async () => {
+    const { invitedRooms } = await getInvitedRoomList();
+
+    setInvitedRooms(invitedRooms);
+  };
+
+  
+
+  
   const filteredRoom = rooms.filter((room) => room.name.toLowerCase().includes(searchRoom.toLowerCase()))
   
 
   useEffect(() => {
     fetchRoom();
+    fetchInvitedRooms()
   }, []);
 
   useEffect(() => {
     if (!user?.id) return;
 
-    const unsubscribe = subscribeToRooms(user.id, async () => {
+    const unsubscribeToRooms = subscribeToRooms(user.id, async () => {
       await fetchRoom();
     });
 
-    return unsubscribe
+    const unsubscribeToRoomsInvitations = subscribeToRoomInvitations(user.id, async () => {
+      await fetchInvitedRooms();
+    });
+
+    return () => {
+      unsubscribeToRooms
+      unsubscribeToRoomsInvitations
+    } 
   }, [user?.id]);
 
   return (
@@ -79,6 +99,7 @@ export default function Sidebar() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         <ChatSidebar rooms={filteredRoom} userId={user?.id} />
+        <InvitedSidebar rooms={invitedRooms} userId={user?.id} />
       </div>
 
       {/* Footer */}

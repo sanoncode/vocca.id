@@ -14,7 +14,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
   
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name,avatar_url")
+    .select("name,avatar_url,email")
     .eq("id", currentUserId)
     .single()
 
@@ -22,7 +22,8 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     const currentUser = {
     id: currentUserId,
     name: profile?.name,
-    avatar_url: profile?.avatar_url
+    avatar_url: profile?.avatar_url,
+    email: profile?.email
   }
 
 
@@ -192,6 +193,41 @@ export async function sendMessage(params: {
   if (!data) return;
 
   await fetchTranslateAPI(data.id);
+}
+
+export async function sendInvitations(params: {
+  roomId: string;
+  emails: string[];
+  userId: string | null | undefined;
+}) {
+  const { roomId, emails, userId } = params;
+
+  
+  const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .in("email", emails);
+
+  const profileMap = new Map(
+    profiles?.map((profile)=>[profile.email.toLowerCase(), profile.id])
+  )
+
+  const { data, error } = await supabase
+    .from("room_invitations")
+    .insert(
+      emails.map((email) => ({
+        room_id: roomId,
+        invited_email: email,
+        invited_user_id: profileMap.get(email.toLowerCase()) ?? null,
+        invited_by: userId
+      }))
+    )
+    .select()
+
+   
+  if (error) throw error;
+  if (!data) return;
+  return data
 }
 
 export async function addMember(params: {

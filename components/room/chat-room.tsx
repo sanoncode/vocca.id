@@ -38,7 +38,7 @@ const ChatRoom = ({ roomId }: roomId) => {
   const [currentUserLang, setCurrentUserLang] = useState<string | null>(null);
   const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
   const [userTyping, setUserTyping] = useState<string[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joined, setJoined] = useState<boolean | null>(null);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
