@@ -10,11 +10,18 @@ export type RoomListResponse = {
   userName: string | null;
 };
 
+export type invitedRoom = {
+    id : string ,
+    name: string,
+    created_by:string,
+    created_at:string
+  }
 
 export type InvitedRoomListResponse = {
-  invitedRooms: Room[];
+  invitedRooms: invitedRoom [];
 };
 
+ 
 export type RoomDataResponse = {
      roomTitle: string;
       roomHost: string;

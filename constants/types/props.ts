@@ -1,3 +1,4 @@
+import { invitedRoom } from "./api";
 import { Avatar, CurrentUser, Message, Room } from "./entities";
 import { SystemMessage } from "./system-messages";
 
@@ -26,6 +27,11 @@ export type ChatRoomContentProps = {
 
 export type ChatSideBarProps = {
   rooms: Room[];
+  userId?: string | null
+};
+
+export type inviteSideBarProps = {
+  rooms: invitedRoom[];
   userId?: string | null
 };
 

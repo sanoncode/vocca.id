@@ -14,6 +14,7 @@ import NewRoomButton from "../new-room-button";
 import { Room } from "@/constants/types/entities";
 import { subscribeToRoomInvitations, subscribeToRooms } from "@/services/supabase/client/side-bar-realtime";
 import InvitedSidebar from "./sidebar-invited";
+import { invitedRoom } from "@/constants/types/api";
 
 type user = {
   id: string | null;
@@ -24,7 +25,7 @@ export default function Sidebar() {
 
   const [user, setUser] = useState<user | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [invitedRooms, setInvitedRooms] = useState<Room[]>([]);
+  const [invitedRooms, setInvitedRooms] = useState<invitedRoom[]>([]);
   const [searchRoom, setSearchRoom] = useState<string | ''>('');
   
   
