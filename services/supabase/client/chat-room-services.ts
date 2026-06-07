@@ -230,6 +230,23 @@ export async function sendInvitations(params: {
   return data
 }
 
+export async function acceptInvitations(params:{roomId: string, lang: string}){
+
+  const { roomId, lang} = params
+
+  const { data: invitation, error } = await supabase.rpc(
+  "accept_room_invitation",
+  {
+    invitation_id: roomId,
+    user_language: lang,
+  }
+);
+
+  if (error) throw error;
+
+  return invitation
+}
+
 export async function addMember(params: {
   roomId: string;
   userId: string;

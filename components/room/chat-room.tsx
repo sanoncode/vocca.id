@@ -7,6 +7,7 @@ import ChatRoomContent from "./chat-room-content";
 import JoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
 import {
+  acceptInvitations,
   addMember,
   getMessages,
   getRoomData,
@@ -162,7 +163,13 @@ const ChatRoom = ({ roomId }: roomId) => {
       language: lang,
     };
 
+    const accept = {
+      roomId: roomId,
+      lang: lang
+    }
+    
     await addMember(member);
+    await acceptInvitations(accept);
     await broadcastUser(roomId, currentUser?.name, "JOIN");
     setJoined(true);
 
