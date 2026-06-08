@@ -8,7 +8,7 @@ import { Search } from "lucide-react";
 import ChatSidebar from "./sidebar-chat";
 import SideLogout from "./side-logout-button";
 import { useEffect, useState } from "react";
-import { getInvitedRoomList, getRoomList } from "@/services/supabase/client/side-bar-services";
+import { getClaimRoomInvitations, getInvitedRoomList, getRoomList } from "@/services/supabase/client/side-bar-services";
 
 import NewRoomButton from "../new-room-button";
 import { Room } from "@/constants/types/entities";
@@ -27,8 +27,8 @@ export default function Sidebar() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [invitedRooms, setInvitedRooms] = useState<invitedRoom[]>([]);
   const [searchRoom, setSearchRoom] = useState<string | ''>('');
-  
-  
+
+
   const fetchRoom = async () => {
     const { rooms, userId, userName } = await getRoomList();
 
@@ -40,21 +40,26 @@ export default function Sidebar() {
     setRooms(rooms);
   };
 
-   const fetchInvitedRooms = async () => {
+  const fetchInvitedRooms = async () => {
     const { invitedRooms } = await getInvitedRoomList();
 
     setInvitedRooms(invitedRooms);
   };
 
-  
 
-  
   const filteredRoom = rooms.filter((room) => room.name.toLowerCase().includes(searchRoom.toLowerCase()))
-  
+
+  const initializeSidebar = async () => {
+    await getClaimRoomInvitations()
+
+    await Promise.all([
+      fetchRoom(),
+      fetchInvitedRooms(),
+    ]);
+  }
 
   useEffect(() => {
-    fetchRoom();
-    fetchInvitedRooms()
+    initializeSidebar()
   }, []);
 
   useEffect(() => {
@@ -69,9 +74,9 @@ export default function Sidebar() {
     });
 
     return () => {
-      unsubscribeToRooms
-      unsubscribeToRoomsInvitations
-    } 
+      unsubscribeToRooms()
+      unsubscribeToRoomsInvitations()
+    }
   }, [user?.id]);
 
   return (
@@ -82,7 +87,7 @@ export default function Sidebar() {
           <h1 className="text-3xl font-bold">Hi, {user?.name}</h1>
           <div className="flex items-end gap-1 align-baseline">
             <ThemeSwitcher />
-            <NewRoomButton  />
+            <NewRoomButton />
           </div>
         </div>
 

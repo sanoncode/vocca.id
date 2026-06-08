@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "./user-services";
 import { invitedRoom, InvitedRoomListResponse, RoomListResponse } from "@/constants/types/api";
 import { Room } from "@/constants/types/entities";
+import { invitedRoomSupabase } from "@/constants/types/supabase";
 
 const supabase = createClient();
 
@@ -64,8 +65,29 @@ export async function getRoomList(): Promise<RoomListResponse> {
 }
 
 export async function getInvitedRoomList(): Promise<InvitedRoomListResponse> {
+
+ const { data, error } = await supabase.rpc(
+    "get_invited_rooms"
+  );
+
+  if (error) throw error;
+
+  const rooms: invitedRoom[] = data?.map((room: invitedRoomSupabase) => ({
+        invitedRoomid: room.invitation_id,
+        roomId: room.room_id,
+        roomName: room.room_name,
+        createdBy: room.created_by,
+        createdAt: room.created_at,
+      })) ?? []
+      
+  return {
+    invitedRooms: rooms,
+  };
+
+}
+
+export async function getClaimRoomInvitations(): Promise<InvitedRoomListResponse> {
   const user = await getCurrentUser();
-  const currentUserId = user?.id ?? null;
   const currentUserEmail = user?.email ?? null;
 
   const { data: claimInvited, error: claimInvitedError } = await supabase.rpc(
@@ -76,23 +98,8 @@ export async function getInvitedRoomList(): Promise<InvitedRoomListResponse> {
   )
   if(claimInvitedError) throw claimInvitedError;
 
- const { data, error } = await supabase.rpc(
-    "get_invited_rooms"
-  );
-
-  if (error) throw error;
-
-
-  const rooms: invitedRoom[] = data?.map((room: invitedRoom) => ({
-        id: room.id,
-        name: room.name,
-        created_by: room.created_by,
-        created_at: room.created_at,
-      })) ?? []
-      
-  return {
-    invitedRooms: rooms
-  };
+   
+  return claimInvited
 
 }
 

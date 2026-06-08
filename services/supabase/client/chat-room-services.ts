@@ -37,6 +37,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       created_by: null,
       currentUser: null,
       currentUserLang: null,
+      invitationId: null
     };
   }
 
@@ -56,7 +57,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       created_by: null,
       currentUser: null,
       currentUserLang: null,
-
+      invitationId: null
     }
   }
 
@@ -82,6 +83,15 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
 
   if (membershipError) throw membershipError;
 
+    const { data: invitation, error: invitationError } = await supabase
+    .from("room_invitations")
+    .select("id")
+    .eq("room_id", roomId)
+    .eq("invited_user_id", currentUserId)
+    .maybeSingle();
+
+  if (invitationError) throw invitationError;
+
   return {
     roomTitle: preview[0].room_title,
     roomHost: preview[0].room_created_by_id,
@@ -91,6 +101,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     created_by: preview[0].room_created_by_name,
     currentUser: currentUser,
     currentUserLang: membership?.language,
+    invitationId: invitation?.id
   };
 }
 
@@ -230,14 +241,14 @@ export async function sendInvitations(params: {
   return data
 }
 
-export async function acceptInvitations(params:{roomId: string, lang: string}){
+export async function acceptInvitations(params:{invitationId: string | null | undefined, lang: string}){
 
-  const { roomId, lang} = params
+  const { invitationId, lang} = params
 
   const { data: invitation, error } = await supabase.rpc(
   "accept_room_invitation",
   {
-    invitation_id: roomId,
+    invitation_id: invitationId,
     user_language: lang,
   }
 );

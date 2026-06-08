@@ -12,6 +12,7 @@ import {
 import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ChatRoomInviteButtonProps } from "@/constants/types/props";
+import { broadcastUser } from "@/services/supabase/client/chat-room-realtime";
 import { sendInvitations } from "@/services/supabase/client/chat-room-services";
 import { UserCheck, UserRoundPlus, XIcon } from "lucide-react";
 import {  useState } from "react";
@@ -55,6 +56,8 @@ const ChatRoomInviteButton = ({userId, roomId}: ChatRoomInviteButtonProps) => {
             roomId: roomId,
             emails: emails
         }
+
+        emails.map((email)=> broadcastUser(roomId, email,'INVITE'))
         const data = await sendInvitations(invitations)
         if(data){
             setInviteLoading(false)

@@ -11,14 +11,19 @@ export type RoomListResponse = {
 };
 
 export type invitedRoom = {
-    id : string ,
-    name: string,
-    created_by:string,
-    created_at:string
-  }
+  invitedRoomid: string,
+  roomId: string,
+  roomName: string,
+  createdBy: string,
+  createdAt: string,
+}
 
 export type InvitedRoomListResponse = {
   invitedRooms: invitedRoom [];
+};
+
+export type ClaimRoomInvitationsResponse = {
+  claimInvited: number;
 };
 
  
@@ -31,4 +36,5 @@ export type RoomDataResponse = {
       created_by: string | null;
       currentUser: CurrentUser | null
       currentUserLang: string | null;
+      invitationId?: string | null
 }

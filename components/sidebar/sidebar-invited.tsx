@@ -21,12 +21,12 @@ const InvitedSidebar = ({ rooms, userId }: inviteSideBarProps ) => {
       {rooms.length > 0 ? (
         rooms.map((room: invitedRoom) => (
           <SideBarItem
-            active={room.id === id}
-            key={room.id}
-            label={room.name}
-            href={`/room/${room.id}`}
+            active={room.roomId === id}
+            key={room.roomId}
+            label={room.roomName}
+            href={`/room/${room.roomId}`}
             userId={userId}
-            createdBy={room.created_by}
+            createdBy={room.createdBy}
           />
         ))
       ) : (

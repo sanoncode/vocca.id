@@ -39,7 +39,8 @@ export function subscribeToRoomInvitations(userId: string, onNewInvitations: () 
                 table: "room_invitations",
                 filter: `invited_user_id=eq.${userId}`,
             },
-            () => {
+            (payload) => {
+                console.log(payload,'payload')
                 onNewInvitations();
             },
 
