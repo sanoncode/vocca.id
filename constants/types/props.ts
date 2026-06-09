@@ -28,11 +28,13 @@ export type ChatRoomContentProps = {
 export type ChatSideBarProps = {
   rooms: Room[];
   userId?: string | null
+  icon: string
 };
 
 export type inviteSideBarProps = {
   rooms: invitedRoom[];
   userId?: string | null
+  icon: string
 };
 
 export type ChatBubbleProps ={
@@ -63,6 +65,7 @@ export type SideBarSectionProps = {
   defaultOpen?: boolean;
   children: React.ReactNode;
   length: number;
+  icon: string;
 };
 
 export type DeleteButtonProps = {

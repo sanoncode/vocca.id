@@ -104,8 +104,8 @@ export default function Sidebar() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        <ChatSidebar rooms={filteredRoom} userId={user?.id} />
-        <InvitedSidebar rooms={invitedRooms} userId={user?.id} />
+        <ChatSidebar rooms={filteredRoom} userId={user?.id} icon={"🏠"}/>
+        <InvitedSidebar rooms={invitedRooms} userId={user?.id} icon={"↗️"} />
       </div>
 
       {/* Footer */}

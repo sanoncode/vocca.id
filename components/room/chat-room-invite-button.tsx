@@ -71,6 +71,8 @@ const ChatRoomInviteButton = ({userId, roomId}: ChatRoomInviteButtonProps) => {
             open={open}
             onOpenChange={(value) => {
                 setOpen(value);
+                setInvitedEmails([])
+                setEmails([])
             }}
         >
             <DialogTrigger asChild>

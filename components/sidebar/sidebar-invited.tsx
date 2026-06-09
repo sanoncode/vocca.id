@@ -8,7 +8,7 @@ import {  inviteSideBarProps } from "@/constants/types/props";
 import { useParams } from "next/navigation";
 import { invitedRoom } from "@/constants/types/api";
 
-const InvitedSidebar = ({ rooms, userId }: inviteSideBarProps ) => {
+const InvitedSidebar = ({ rooms, userId, icon }: inviteSideBarProps ) => {
   const { id } = useParams()
 
   if (!rooms) {
@@ -17,7 +17,7 @@ const InvitedSidebar = ({ rooms, userId }: inviteSideBarProps ) => {
 
   return (
     <>
-    <SideBarSection title="Invited" length={rooms.length}>
+    <SideBarSection title="Invited" length={rooms.length} icon={icon}>
       {rooms.length > 0 ? (
         rooms.map((room: invitedRoom) => (
           <SideBarItem

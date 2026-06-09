@@ -8,14 +8,14 @@ import { Room } from "@/constants/types/entities";
 import { useParams } from "next/navigation";
 
 
-const ChatSidebar = ({rooms, userId}: ChatSideBarProps) => {
+const ChatSidebar = ({rooms, userId, icon}: ChatSideBarProps) => {
 
   const {id} = useParams()
 
   if(!rooms){
     return <div>loading....</div>
   } return (
-    <SideBarSection title="Rooms" length={rooms.length}>
+    <SideBarSection title="Rooms" length={rooms.length} icon={icon}>
       {
         rooms.length > 0 ? ( 
         rooms.map((room: Room) => (

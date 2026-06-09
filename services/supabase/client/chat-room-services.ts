@@ -171,8 +171,15 @@ export async function leaveRoom(roomId: string, userId: string | null | undefine
     .eq("user_id", userId)
     .select()
 
+    const { error: invitationError } = await supabase
+    .from('room_invitations')
+    .delete()
+    .eq("room_id", roomId)
+    .eq("invited_user_id", userId)
+   
 
-  if (error) {
+
+  if (error && invitationError) {
     console.error("❌ SUPABASE DELETE ERROR DETECTED:", error);
     return room;
   }
