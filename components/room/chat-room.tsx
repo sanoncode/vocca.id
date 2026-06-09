@@ -7,6 +7,7 @@ import ChatRoomContent from "./chat-room-content";
 import JoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
 import {
+  acceptInvitations,
   addMember,
   getMessages,
   getRoomData,
@@ -38,7 +39,7 @@ const ChatRoom = ({ roomId }: roomId) => {
   const [currentUserLang, setCurrentUserLang] = useState<string | null>(null);
   const [systemMessages, setSystemMessages] = useState<SystemMessage[]>([]);
   const [userTyping, setUserTyping] = useState<string[]>([]);
-  const [currentUser, setCurrentUser] = useState<CurrentUser>(null);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joined, setJoined] = useState<boolean | null>(null);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
@@ -46,6 +47,7 @@ const ChatRoom = ({ roomId }: roomId) => {
   const [roomTitle, setRoomTitle] = useState("");
   const [roomHost, setRoomHost] = useState<string | null>("");
   const [roomNotFound, setRoomNotFound] = useState<boolean>(false);
+  const [invitationId, setInvitationId] = useState<string | null | undefined>(null)
   const [input, setInput] = useState("");
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -67,6 +69,7 @@ const ChatRoom = ({ roomId }: roomId) => {
       created_by,
       currentUser,
       currentUserLang,
+      invitationId
     } = await getRoomData(roomId);
 
     setCurrentUser(currentUser);
@@ -76,6 +79,7 @@ const ChatRoom = ({ roomId }: roomId) => {
     setRoomHost(roomHost);
     setRoomNotFound(roomNotFound);
     setCreatedBy(created_by);
+    setInvitationId(invitationId)
 
     setJoined(!!joined);
     if (joined) {
@@ -137,7 +141,7 @@ const ChatRoom = ({ roomId }: roomId) => {
     await sendMessage(newMessage);
   };
 
-  const handleTyping =  (e: any) => {
+  const handleTyping = (e: any) => {
     const value = e.target.value;
 
     setInput(value);
@@ -156,27 +160,40 @@ const ChatRoom = ({ roomId }: roomId) => {
   const handleJoin = async () => {
     if (joinLoading) return;
     if (!lang || !currentUser?.id) return;
-    const member = {
-      roomId,
-      userId: currentUser.id,
-      language: lang,
-    };
 
-    await addMember(member);
-    await broadcastUser(roomId, currentUser?.name, "JOIN");
-    setJoined(true);
-
-    try {
-      await fetchCatchUpTranslateAPI(roomId, lang);
-    } catch (e) {
-      console.error("Gagal memproses translasi riwayat lama", e);
+    setJoinLoading(true)
+    // const member = {
+    //   roomId,
+    //   userId: currentUser.id,
+    //   language: lang,
+    // };
+    const accept = {
+      invitationId: invitationId,
+      lang: lang
     }
+    try {
+      await acceptInvitations(accept);
 
-    await initializeRoom();
-    setJoinLoading(false);
+      await broadcastUser(roomId, currentUser?.name, "JOIN");
+
+      setJoined(true);
+
+      await fetchCatchUpTranslateAPI(roomId, lang);
+
+      await initializeRoom();
+    } catch (err) {
+      console.error("JOIN ERROR", err);
+    } finally {
+      setJoinLoading(false);
+    }
   };
 
   const handleBroadcast = (payload: SystemMessage) => {
+      console.log(payload)
+     if (payload.userEvent === "INVITE") {
+      setSystemMessages((prev) => [...prev, payload]);
+    }
+
     if (payload.userEvent === "JOIN" || payload.userEvent === "LEAVE") {
       setSystemMessages((prev) => [...prev, payload]);
     }

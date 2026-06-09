@@ -1,4 +1,5 @@
-import { Avatar, Message, Room } from "./entities";
+import { invitedRoom } from "./api";
+import { Avatar, CurrentUser, Message, Room } from "./entities";
 import { SystemMessage } from "./system-messages";
 
 export type JoinRoomOverlayProps = {
@@ -15,18 +16,25 @@ export type ChatRoomHeaderProps = {
   roomId: string;
   roomTitle: string;
   avatars?: Avatar[];
-  currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
+  currentUser: CurrentUser | null
 };
 
 export type ChatRoomContentProps = {
   messages: Message[];
-  currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
+  currentUser: CurrentUser | null
   userTyping: string[] 
 };
 
 export type ChatSideBarProps = {
   rooms: Room[];
   userId?: string | null
+  icon: string
+};
+
+export type inviteSideBarProps = {
+  rooms: invitedRoom[];
+  userId?: string | null
+  icon: string
 };
 
 export type ChatBubbleProps ={
@@ -37,6 +45,11 @@ export type ChatBubbleProps ={
   messageDisplayText: string,
   messageCreatedAt: string,
   isMe: boolean
+}
+
+export type ChatRoomInviteButtonProps ={
+  userId: string | null | undefined
+  roomId: string,
 }
 
 export type SideBarItemProps = {
@@ -52,6 +65,7 @@ export type SideBarSectionProps = {
   defaultOpen?: boolean;
   children: React.ReactNode;
   length: number;
+  icon: string;
 };
 
 export type DeleteButtonProps = {
@@ -60,7 +74,7 @@ export type DeleteButtonProps = {
 
 export type LeaveButtonProps = {
     roomId: string;
-    currentUser: Pick<Avatar, 'id' | 'name' | 'avatar_url'> | null
+    currentUser: CurrentUser | null
 }
 
 export type SelectLangButtonprops = {

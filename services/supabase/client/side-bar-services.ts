@@ -1,8 +1,9 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentUser } from "./user-services";
-import { RoomListResponse } from "@/constants/types/api";
+import { invitedRoom, InvitedRoomListResponse, RoomListResponse } from "@/constants/types/api";
 import { Room } from "@/constants/types/entities";
+import { invitedRoomSupabase } from "@/constants/types/supabase";
 
 const supabase = createClient();
 
@@ -43,21 +44,7 @@ export async function getRoomList(): Promise<RoomListResponse> {
       userName: currentUserName,
     };
   }
-  const roomIds = data.map((item) => item.room_id);
-
-  const { data: roomCounts, error: countError } = await supabase
-    .from("room_members")
-    .select("room_id")
-    .in("room_id", roomIds);
-
-  if (countError) throw countError;
-
-  const memberCounts =
-    roomCounts?.reduce<Record<string, number>>((acc, row) => {
-      acc[row.room_id] = (acc[row.room_id] || 0) + 1;
-      return acc;
-    }, {}) ?? {};
-
+ 
   const rooms: Room[] = data.map((item) => {
     const room = Array.isArray(item.rooms) ? item.rooms[0] : item.rooms;
 
@@ -66,7 +53,6 @@ export async function getRoomList(): Promise<RoomListResponse> {
       name: room?.name ?? "Untitled Room",
       created_at: room?.created_at ?? "",
       created_by: room?.created_by ?? null,
-      member_count: memberCounts[item.room_id] ?? 0,
     };
   });
 
@@ -78,25 +64,43 @@ export async function getRoomList(): Promise<RoomListResponse> {
   };
 }
 
-export function subscribeToRooms(userId: string, onNewRoom: () => void) {
-  const channel = supabase
-    .channel(`sidebar-${userId}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "room_members",
+export async function getInvitedRoomList(): Promise<InvitedRoomListResponse> {
 
-      },
-      () => {
-       
-        onNewRoom();
-      },
-    )
-    .subscribe()
+ const { data, error } = await supabase.rpc(
+    "get_invited_rooms"
+  );
 
-  return () => {
-    supabase.removeChannel(channel);
+  if (error) throw error;
+
+  const rooms: invitedRoom[] = data?.map((room: invitedRoomSupabase) => ({
+        invitedRoomid: room.invitation_id,
+        roomId: room.room_id,
+        roomName: room.room_name,
+        createdBy: room.created_by,
+        createdAt: room.created_at,
+      })) ?? []
+      
+  return {
+    invitedRooms: rooms,
   };
+
 }
+
+export async function getClaimRoomInvitations(): Promise<InvitedRoomListResponse> {
+  const user = await getCurrentUser();
+  const currentUserEmail = user?.email ?? null;
+
+  const { data: claimInvited, error: claimInvitedError } = await supabase.rpc(
+    "claim_room_invitations",
+    {
+      user_email: currentUserEmail
+    }
+  )
+  if(claimInvitedError) throw claimInvitedError;
+
+   
+  return claimInvited
+
+}
+
+

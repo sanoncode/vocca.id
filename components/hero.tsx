@@ -55,7 +55,7 @@ export function Hero() {
             </div>
             <div>
               <h3 className="font-semibold ">
-                Invite anyone 👥
+                Invite anyone ↗️
               </h3>
               <p className="text-sm ">
                 Share your room link with friends, clients, or teammates.

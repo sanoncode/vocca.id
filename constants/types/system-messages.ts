@@ -1,5 +1,5 @@
 
-export type UserEvent = "JOIN" | "LEAVE" | "TYPING" | "IDLE"
+export type UserEvent = "JOIN" | "LEAVE" | "INVITE" | "TYPING" | "IDLE"
 
 export type SystemMessage = {
     
