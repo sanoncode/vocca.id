@@ -30,6 +30,18 @@ const ChatRoomSystemMessages = ({ systemMessages }: SystemMessageProps) => {
               </div>
             );
 
+            case "INVITE":
+            return (
+              <div key={index} className="flex justify-center py-3">
+                <div className="flex items-center gap-2 rounded-full border border-zinc-800 px-4 py-2">
+                  <span>🚪</span>
+                  <span className="text-xs text-muted-foreground">
+                    {message.userName} Invited To the room
+                  </span>
+                </div>
+              </div>
+            );
+
           default:
             return null;
         }

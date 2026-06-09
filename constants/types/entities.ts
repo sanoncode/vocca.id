@@ -5,14 +5,17 @@ export type Avatar = {
   lang_code: string;
 };
 
-export type CurrentUser = Pick<Avatar,  'avatar_url' | 'id' | 'name'> | null
+export type CurrentUser = {
+   id: string | null;
+   name: string | null;
+   email: string | null
+}
 
 export type Room = {
   id: string;
   name: string;
   created_at: string;
   created_by: string | null;
-  member_count: number;
 };
 
 export type RoomMember = {

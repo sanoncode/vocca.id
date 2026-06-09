@@ -9,39 +9,70 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Check, Copy, UserRoundPlus } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { ChatRoomInviteButtonProps } from "@/constants/types/props";
+import { broadcastUser } from "@/services/supabase/client/chat-room-realtime";
+import { sendInvitations } from "@/services/supabase/client/chat-room-services";
+import { UserCheck, UserRoundPlus, XIcon } from "lucide-react";
+import {  useState } from "react";
 
-const ChatRoomInviteButton = () => {
+const ChatRoomInviteButton = ({userId, roomId}: ChatRoomInviteButtonProps) => {
 
-    const pathname = usePathname()
     const [open, setOpen] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const [email, setEmail] = useState("");
+    const [emails, setEmails] = useState<string[]>([]);
+    const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
+    const [inviteLoading, setInviteLoading] = useState(false)
 
-    const inviteLink = `${window.location.origin}${pathname}`;
-    const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      setCopied(true);
+    const addEmail = () => {
+        const value = email.trim().toLowerCase();
 
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (error) {
-      console.error("Failed to copy link:", error);
+        if (!value) return;
+
+        const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+        if (!isValid) return;
+
+        if (emails.includes(value)) return;
+
+        setEmails((prev) => [...prev, value]);
+        setEmail("");
+    };
+
+    const removeEmail = (emailToRemove: string) => {
+        setEmails((prev) =>
+            prev.filter((item) => item !== emailToRemove)
+        );
+    };
+
+    const handleInvite = async() => {
+        if(!roomId && !userId) return
+
+        setInviteLoading(true)
+
+        const invitations = {
+            userId: userId,
+            roomId: roomId,
+            emails: emails
+        }
+
+        emails.map((email)=> broadcastUser(roomId, email,'INVITE'))
+        const data = await sendInvitations(invitations)
+        if(data){
+            setInviteLoading(false)
+            setInvitedEmails(emails)
+            setEmails([])
+        }
     }
-  };
-
 
     return (
         <Dialog
             open={open}
             onOpenChange={(value) => {
                 setOpen(value);
+                setInvitedEmails([])
+                setEmails([])
             }}
         >
             <DialogTrigger asChild>
@@ -61,29 +92,79 @@ const ChatRoomInviteButton = () => {
                         Invite others to join the room !
                     </DialogDescription>
                 </DialogHeader>
+                {emails.length > 0 && (
+                      <FieldGroup>
+                        <div className="min-h-10 px-2 py-2 flex flex-wrap gap-2">
+                        {emails.map((item) => (
+                            <div
+                                key={item}
+                                className="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-sm"
+                            >
+                                <span>{item}</span>
+
+                                <button
+                                    type="button"
+                                    onClick={() => removeEmail(item)}
+                                    className="text-zinc-500 hover:text-red-500"
+                                >
+                                    <XIcon className="h-6 w-6"/>
+                                </button>
+                            </div>
+                        ))}
+                        </div>
+
+                </FieldGroup>
+                )}
+
+                {invitedEmails.length > 0 && (
+                    <FieldGroup>
+                        <div className="min-h-10 px-2 py-2 flex flex-wrap gap-2">
+                        {invitedEmails.map((item) => (
+                            <div
+                                key={item}
+                                className="flex items-center gap-1 rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-sm"
+                            >
+                                <span>{item}</span>
+
+                               <UserCheck className="w-6 h-6" />
+                            </div>
+                        ))}
+                        </div>
+
+                </FieldGroup>
+                )}
+              
                 <FieldGroup>
-                    <Field>
-                        <Label>Room Link</Label>
-                        <Input
-                            value={pathname}
-                            readOnly
+                     <Input
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || (e.key === ' ' || e.key === 'Spacebar')) {
+                                    e.preventDefault();
+                                    addEmail();
+                                }
+                            }}
+                            placeholder={
+                                emails.length === 0
+                                    ? "Enter email address"
+                                    : ""
+                            }
+                            className="flex-1 min-w-[200px] bg-transparent outline-none"
                         />
-                    </Field>
+                   
                 </FieldGroup>
 
                 <DialogFooter>
-                    <Button onClick={copyToClipboard}>
-                        {copied ? (
-                            <>
-                                <Check className="mr-2 h-4 w-4" />
-                                Copied!
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="mr-2 h-4 w-4" />
-                                Copy Link
-                            </>
-                        )}
+                    <Button
+                        disabled={emails.length === 0 && !inviteLoading}
+                        onClick={handleInvite}
+                    > { inviteLoading ? (
+                                'Sending...'
+                            ) : (  
+                                 `Send Invite (${emails.length}) `
+                            )
+                        }
+                        
                     </Button>
                 </DialogFooter>
             </DialogContent>

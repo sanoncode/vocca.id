@@ -14,7 +14,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
   
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name,avatar_url")
+    .select("name,avatar_url,email")
     .eq("id", currentUserId)
     .single()
 
@@ -22,7 +22,8 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     const currentUser = {
     id: currentUserId,
     name: profile?.name,
-    avatar_url: profile?.avatar_url
+    avatar_url: profile?.avatar_url,
+    email: profile?.email
   }
 
 
@@ -36,6 +37,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       created_by: null,
       currentUser: null,
       currentUserLang: null,
+      invitationId: null
     };
   }
 
@@ -55,7 +57,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       created_by: null,
       currentUser: null,
       currentUserLang: null,
-
+      invitationId: null
     }
   }
 
@@ -81,6 +83,15 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
 
   if (membershipError) throw membershipError;
 
+    const { data: invitation, error: invitationError } = await supabase
+    .from("room_invitations")
+    .select("id")
+    .eq("room_id", roomId)
+    .eq("invited_user_id", currentUserId)
+    .maybeSingle();
+
+  if (invitationError) throw invitationError;
+
   return {
     roomTitle: preview[0].room_title,
     roomHost: preview[0].room_created_by_id,
@@ -90,6 +101,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     created_by: preview[0].room_created_by_name,
     currentUser: currentUser,
     currentUserLang: membership?.language,
+    invitationId: invitation?.id
   };
 }
 
@@ -159,8 +171,15 @@ export async function leaveRoom(roomId: string, userId: string | null | undefine
     .eq("user_id", userId)
     .select()
 
+    const { error: invitationError } = await supabase
+    .from('room_invitations')
+    .delete()
+    .eq("room_id", roomId)
+    .eq("invited_user_id", userId)
+   
 
-  if (error) {
+
+  if (error && invitationError) {
     console.error("❌ SUPABASE DELETE ERROR DETECTED:", error);
     return room;
   }
@@ -192,6 +211,58 @@ export async function sendMessage(params: {
   if (!data) return;
 
   await fetchTranslateAPI(data.id);
+}
+
+export async function sendInvitations(params: {
+  roomId: string;
+  emails: string[];
+  userId: string | null | undefined;
+}) {
+  const { roomId, emails, userId } = params;
+
+  
+  const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .in("email", emails);
+
+  const profileMap = new Map(
+    profiles?.map((profile)=>[profile.email.toLowerCase(), profile.id])
+  )
+
+  const { data, error } = await supabase
+    .from("room_invitations")
+    .insert(
+      emails.map((email) => ({
+        room_id: roomId,
+        invited_email: email,
+        invited_user_id: profileMap.get(email.toLowerCase()) ?? null,
+        invited_by: userId
+      }))
+    )
+    .select()
+
+   
+  if (error) throw error;
+  if (!data) return;
+  return data
+}
+
+export async function acceptInvitations(params:{invitationId: string | null | undefined, lang: string}){
+
+  const { invitationId, lang} = params
+
+  const { data: invitation, error } = await supabase.rpc(
+  "accept_room_invitation",
+  {
+    invitation_id: invitationId,
+    user_language: lang,
+  }
+);
+
+  if (error) throw error;
+
+  return invitation
 }
 
 export async function addMember(params: {

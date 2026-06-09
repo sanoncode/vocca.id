@@ -25,7 +25,7 @@ export function subscribeToMessages(roomId: string, onNewMessage: () => void) {
     };
 }
 
-export function subscribeToRoomMember(roomId: string, onNewMessage: () => void) {
+export function subscribeToRoomMember(roomId: string, onNewMember: () => void) {
     const channel = supabase
         .channel(`room-members-${roomId}`)
         .on(
@@ -37,7 +37,7 @@ export function subscribeToRoomMember(roomId: string, onNewMessage: () => void) 
                 filter: `room_id=eq.${roomId}`,
             },
             () => {
-                onNewMessage();
+                onNewMember();
             },
 
         )
