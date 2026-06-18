@@ -8,7 +8,8 @@ export type Avatar = {
 export type CurrentUser = {
    id: string | null;
    name: string | null;
-   email: string | null
+   email: string | null;
+   lang: string | null;
 }
 
 export type Room = {
