@@ -35,6 +35,5 @@ export type RoomDataResponse = {
       joined: boolean;
       created_by: string | null;
       currentUser: CurrentUser | null
-      currentUserLang: string | null;
       invitationId?: string | null
 }

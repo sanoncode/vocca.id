@@ -1,13 +1,18 @@
 import { ChatRoomContentProps } from "@/constants/types/props";
 import React, { useEffect, useRef } from "react";
 import ChatRoomBubble from "./chat-room-bubble";
+import ChatStore from "@/store/messageStore";
+import UserStore from "@/store/userStore";
+import { useShallow } from "zustand/react/shallow";
 
-const ChatRoomContent = ({
-  messages,
-  currentUser,
-  userTyping,
-}: ChatRoomContentProps) => {
+const ChatRoomContent = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  
+  const {messages, userTyping} = ChatStore(useShallow((state)=>({
+      messages: state.messages,
+      userTyping: state.userTyping
+  })))
+  const currentUser = UserStore((state)=>state.currentUser)
 
   useEffect(() => {
     const container = chatContainerRef.current;
@@ -17,7 +22,7 @@ const ChatRoomContent = ({
       top: container.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages.length]);
+  }, [messages.length, userTyping.length]);
 
   return (
     <div

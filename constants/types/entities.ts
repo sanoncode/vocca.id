@@ -8,7 +8,8 @@ export type Avatar = {
 export type CurrentUser = {
    id: string | null;
    name: string | null;
-   email: string | null
+   email: string | null;
+   lang: string | null;
 }
 
 export type Room = {
@@ -34,4 +35,13 @@ export type Message = {
   created_at: string;
   sender: Avatar;
   display_text: string;
+};
+
+export type RoomData = {
+    title: string;
+    host: string | null;
+    createdBy: string | null;
+    invitationId: string | null | undefined;
+    avatars: Avatar[];
+    notFound: boolean;
 };
