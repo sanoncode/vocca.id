@@ -18,14 +18,6 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     .eq("id", currentUserId)
     .single()
 
-    
-    const currentUser = {
-    id: currentUserId,
-    name: profile?.name,
-    avatar_url: profile?.avatar_url,
-    email: profile?.email
-  }
-
 
   if (!currentUserId) {
     return {
@@ -36,7 +28,6 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       joined: false,
       created_by: null,
       currentUser: null,
-      currentUserLang: null,
       invitationId: null
     };
   }
@@ -56,7 +47,6 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       joined: false,
       created_by: null,
       currentUser: null,
-      currentUserLang: null,
       invitationId: null
     }
   }
@@ -92,6 +82,16 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
 
   if (invitationError) throw invitationError;
 
+    
+    const currentUser = {
+    id: currentUserId,
+    name: profile?.name,
+    avatar_url: profile?.avatar_url,
+    email: profile?.email,
+    lang: membership?.language
+  }
+
+
   return {
     roomTitle: preview[0].room_title,
     roomHost: preview[0].room_created_by_id,
@@ -100,7 +100,6 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     joined: !!membership,
     created_by: preview[0].room_created_by_name,
     currentUser: currentUser,
-    currentUserLang: membership?.language,
     invitationId: invitation?.id
   };
 }

@@ -13,25 +13,27 @@ import {
 import { LeaveButtonProps } from "@/constants/types/props";
 import { broadcastUser } from "@/services/supabase/client/chat-room-realtime";
 import { leaveRoom } from "@/services/supabase/client/chat-room-services";
+import UserStore from "@/store/userStore";
 import { Loader2, SquareArrowRightExit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const ChatLeaveRoomButton = ({ roomId, currentUser }: LeaveButtonProps) => {
+const ChatLeaveRoomButton = ({ roomId, handleLeave }: LeaveButtonProps) => {
+
+    const currentUser = UserStore((state) => state.currentUser)
 
     const router = useRouter()
     const [open, setOpen] = useState(false);
     const [leaveLoading, setLeaveLoading] = useState(false)
 
-    const handleLeave = async () => {
+    const leaveRoom = async () => {
         setLeaveLoading(true)
-        const result = await leaveRoom(roomId, currentUser?.id)
-        if (result) {
-            broadcastUser(roomId, currentUser?.name,'LEAVE')
-            setLeaveLoading(false)
-            setOpen(false)
-            router.push('/room')
-        }
+        await handleLeave()
+        await broadcastUser(roomId, currentUser?.name, 'LEAVE')
+        setLeaveLoading(false)
+        setOpen(false)
+        router.push('/room')
+
     }
 
     return (
@@ -70,7 +72,7 @@ const ChatLeaveRoomButton = ({ roomId, currentUser }: LeaveButtonProps) => {
 
                     <Button
                         variant="destructive"
-                        onClick={handleLeave}
+                        onClick={leaveRoom}
                     >
                         {leaveLoading ? <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

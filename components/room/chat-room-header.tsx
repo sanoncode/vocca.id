@@ -4,12 +4,15 @@ import DeleteButton from "../delete-chat-button";
 import { getFlagEmoji } from "@/lib/utils";
 import { ChatRoomHeaderProps } from "@/constants/types/props";
 import ChatLeaveRoomButton from "./chat-leave-room";
+import RoomStore from "@/store/roomStore";
+import UserStore from "@/store/userStore";
 
+const ChatRoomHeader = ({roomId, handleLeave}: ChatRoomHeaderProps) => {
 
-
-const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, currentUser}: ChatRoomHeaderProps) => {
-
-  const isRoomHost =(id: string | null | undefined) => id === roomHost
+    const roomData = RoomStore((state) => state.roomData)
+    const currentUser = UserStore((state) => state.currentUser)
+    
+  const isRoomHost =(id: string | null | undefined) => id === roomData.host
 
   return (
     <header className="p-4 flex items-center justify-between border-b bg-background text-foreground">
@@ -17,7 +20,7 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, currentUser}: Cha
   <div className="flex flex-col space-y-3">
     {/* Room Title */}
     <h1 className="font-bold text-xl tracking-tight text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-      {roomTitle}
+      {roomData.title}
     </h1>
 
     {/* Metadata: Host & Members Container */}
@@ -26,7 +29,7 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, currentUser}: Cha
       <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-800">
         <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Host</span>
         <div className="flex -space-x-1.5">
-          {avatars?.map((avatar) => (
+          {roomData.avatars?.map((avatar) => (
              isRoomHost(avatar.id) && (
               <div
                 key={avatar.id}
@@ -64,11 +67,11 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, currentUser}: Cha
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Members</span>
         <div className="flex -space-x-2 hover:space-x-1 transition-all duration-300 ease-in-out">
-          {avatars?.map((avatar, index) => (
+          {roomData.avatars?.map((avatar, index) => (
             <div
               key={avatar.id}
               className="relative w-8 h-8 rounded-full border-2 border-background shadow-md group transition-transform duration-200 hover:-translate-y-1 hover:z-10"
-              style={{ zIndex: avatars.length - index }}
+              style={{ zIndex: roomData.avatars.length - index }}
             >
               {avatar.avatar_url ? (
                 <Image
@@ -101,7 +104,7 @@ const ChatRoomHeader = ({roomHost, roomId, roomTitle, avatars, currentUser}: Cha
   { isRoomHost(currentUser?.id) ? ( <div className="flex items-center gap-2">
     <ChatRoomInviteButton userId={currentUser?.id} roomId={roomId} />
     <DeleteButton roomId={roomId} />
-  </div>) : <ChatLeaveRoomButton roomId={roomId} currentUser={currentUser} />}
+  </div>) : <ChatLeaveRoomButton roomId={roomId} handleLeave={handleLeave} />}
 
 </header>
   );
