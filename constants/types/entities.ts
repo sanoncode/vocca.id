@@ -36,3 +36,12 @@ export type Message = {
   sender: Avatar;
   display_text: string;
 };
+
+export type RoomData = {
+    title: string;
+    host: string | null;
+    createdBy: string | null;
+    invitationId: string | null | undefined;
+    avatars: Avatar[];
+    notFound: boolean;
+};

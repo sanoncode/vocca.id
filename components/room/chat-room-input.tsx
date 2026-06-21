@@ -39,7 +39,7 @@ const ChatRoomInput = ({roomId }: roomId) => {
             roomId: roomId,
             senderId: currentUser?.id,
             text: inputTrimmed,
-            originalLang: currentUser?.lang,
+            originalLang: currentUser?.lang!,
         };
 
         await sendMessage(newMessage);

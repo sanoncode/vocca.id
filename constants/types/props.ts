@@ -2,26 +2,27 @@ import { invitedRoom } from "./api";
 import { Avatar, CurrentUser, Message, Room } from "./entities";
 import { SystemMessage } from "./system-messages";
 
-export type JoinRoomOverlayProps = {
-  roomTitle: string;
-  creatorName: string | null;
-  language: string;
-  setLanguage: (value: string) => void;
+export type ChatJoinRoomOverlayProps = {
   handleJoin: () => void;
-  loading?: boolean;
 };
 
+type RoomData = {
+    avatars: Avatar[]
+    title: string | null,
+    host: string | null,
+    createdBy: string | null,
+    invitationId: string | null,
+    notFound: boolean,
+}
+
 export type ChatRoomHeaderProps = {
-  roomHost: string | null;
-  roomId: string;
-  roomTitle: string;
-  avatars?: Avatar[];
-  currentUser: CurrentUser | null
+  roomId: string ;
+  handleLeave: () => void;
 };
 
 export type ChatRoomContentProps = {
   messages: Message[];
-  currentUser: CurrentUser | null
+  currentUser: CurrentUser | null;
   userTyping: string[] 
 };
 
@@ -74,11 +75,11 @@ export type DeleteButtonProps = {
 
 export type LeaveButtonProps = {
     roomId: string;
-    currentUser: CurrentUser | null
+    handleLeave: () => void
 }
 
 export type SelectLangButtonprops = {
-    value: string,
+    value?: string,
     onChange: (value: string) => void
 }
 

@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useEffect, useRef, useState } from "react";
-// import { Button } from "../../ui/button";
+
 import ChatRoomHeader from "./chat-room-header";
 import ChatRoomContent from "./chat-room-content";
-import JoinRoomOverlay from "./chat-join-room-overlay";
+import ChatJoinRoomOverlay from "./chat-join-room-overlay";
 import { Loader2 } from "lucide-react";
 import RoomNotFound from "./chat-room-not-found";
 import ChatRoomSystemMessages from "./chat-room-system-messages";
-import useChatRoom from "@/hooks/useChatRoom";
 import ChatRoomInput from "./chat-room-input";
+import useRoom from "@/hooks/useRoom";
+import useMessages from "@/hooks/useMessages";
+import useRealtime from "@/hooks/useRealtime";
 
 type roomId = { 
   roomId: string;
@@ -17,22 +18,27 @@ type roomId = {
 
 const ChatRoom = ({ roomId }: roomId) => {
 
-  const { 
-        avatars,
+    const {
         currentUser,
         joined,
-        joinLoading,
-        roomNotFound,
-        roomHost,
-        roomTitle,
-        systemMessages,
-        createdBy,
-        lang,
-        setLang,
+        roomData,
         handleJoin,
-  } = useChatRoom(roomId)
+        handleLeave
+    } = useRoom(roomId);
+
+    useMessages({
+      roomId, 
+      currentLang: currentUser?.lang!
+    })
+
+    const {
+      systemMessages
+    } = useRealtime({
+      roomId
+    })
+  
  
-  if (roomNotFound) {
+  if (roomData.notFound) {
     return <RoomNotFound />;
   }
 
@@ -46,13 +52,8 @@ const ChatRoom = ({ roomId }: roomId) => {
 
   if (!joined) {
     return (
-      <JoinRoomOverlay
-        roomTitle={roomTitle}
-        creatorName={createdBy}
-        language={lang}
-        setLanguage={setLang}
+      <ChatJoinRoomOverlay
         handleJoin={handleJoin}
-        loading={joinLoading}
       />
     );
   }
@@ -61,11 +62,8 @@ const ChatRoom = ({ roomId }: roomId) => {
       {/* HEADER */}
 
       <ChatRoomHeader
-        roomHost={roomHost}
         roomId={roomId}
-        roomTitle={roomTitle}
-        avatars={avatars}
-        currentUser={currentUser}
+        handleLeave={handleLeave}
       />
 
       <ChatRoomSystemMessages systemMessages={systemMessages} />

@@ -34,7 +34,7 @@ export default function Sidebar() {
 
     const currUser = {
       id: userId,
-      name: userName,
+      name: userName, 
     };
     setUser(currUser ?? null);
     setRooms(rooms);

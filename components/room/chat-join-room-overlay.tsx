@@ -10,17 +10,21 @@ import {
 } from "@/components/ui/card";
 import { Globe, Users } from "lucide-react";
 import SelectLangButton from "../select-lang-button";
-import { JoinRoomOverlayProps } from "@/constants/types/props";
+import { ChatJoinRoomOverlayProps } from "@/constants/types/props";
+import RoomStore from "@/store/roomStore";
+import { useShallow } from "zustand/react/shallow";
 
 
-export default function JoinRoomOverlay({
-  roomTitle,
-  creatorName,
-  language,
-  setLanguage,
+export default function ChatJoinRoomOverlay({
   handleJoin,
-  loading ,
-}: JoinRoomOverlayProps) {
+}: ChatJoinRoomOverlayProps) {
+
+  const { roomData, lang, joinedLoading, setLang } = RoomStore(useShallow((state) => ({
+    roomData: state.roomData,
+    lang: state.lang,
+    joinedLoading: state.joinedLoading,
+    setLang: state.setLang,
+  })))
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex items-center justify-center p-6">
@@ -32,12 +36,12 @@ export default function JoinRoomOverlay({
 
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold">
-              Join {roomTitle}
+              Join {roomData.title}
             </CardTitle>
             <CardDescription className="text-sm">
               You were invited by{" "}
               <span className="font-semibold text-foreground">
-                {creatorName}
+                {roomData.createdBy}
               </span>
             </CardDescription>
           </div>
@@ -51,17 +55,17 @@ export default function JoinRoomOverlay({
               Select Your Language
             </label>
 
-           <SelectLangButton value={language} onChange={setLanguage}/>
+            <SelectLangButton value={lang} onChange={setLang} />
           </div>
 
           {/* Join Button */}
           <Button
             className="w-full"
             size="lg"
-            disabled={!language || loading}
+            disabled={!lang || joinedLoading}
             onClick={() => handleJoin()}
           >
-            {loading ? "Joining..." : "Join Room"}
+            {joinedLoading ? "Joining..." : "Join Room"}
           </Button>
         </CardContent>
       </Card>

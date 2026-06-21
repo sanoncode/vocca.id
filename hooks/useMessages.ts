@@ -1,20 +1,57 @@
+import { subscribeToMessages, subscribeToMessageTranslations } from '@/services/supabase/client/chat-room-realtime'
+import { getMessages } from '@/services/supabase/client/chat-room-services'
 import MessagesStore from '@/store/messageStore'
-import React from 'react'
-import { useShallow } from 'zustand/react/shallow'
+import RoomStore from '@/store/roomStore'
+import { useEffect } from 'react'
 
-const useMessages = ({roomId,joined,currentLang}) => {
-      const { messages, setMessages, addUserTyping, removeUserTyping } = MessagesStore(useShallow((state) => ({
-        messages: state.messages,
-        userTyping: state.userTyping,
-        addUserTyping: state.addUserTyping,
-        removeUserTyping: state.removeUserTyping,
-        setMessages: state.setMessages
+type UseMessageProps = {
+    roomId: string,
+    currentLang: string | null
+}
 
-    }))) 
-    
-    return (
 
-  )
+const useMessages = ({ roomId, currentLang }: UseMessageProps) => {
+
+    const setMessages = MessagesStore((state) => state.setMessages)
+    const joined = RoomStore((state)=> state.joined)
+
+    const fetchMessages = async (currentLang: string | null) => {
+        if (!roomId) return;
+
+        console.log("FETCH MESSAGE LANG:", currentLang);
+
+
+        const { messages } = await getMessages(roomId, currentLang);
+
+        setMessages(messages || []);
+    };
+
+    useEffect(() => {
+        fetchMessages(currentLang)
+    }, [roomId, joined, currentLang])
+
+    useEffect(() => {
+        if (!roomId || !joined) return;
+
+        const unsubscribeTranslation = subscribeToMessageTranslations(
+            roomId,
+            () => {
+                fetchMessages(currentLang);
+            },
+        );
+
+        const unsubcribemessage = subscribeToMessages(roomId, () => {
+            fetchMessages(currentLang);
+        });
+
+
+        return () => {
+            unsubscribeTranslation();
+            unsubcribemessage();
+        };
+    }, [roomId, joined, currentLang]);
+
+    return
 }
 
 export default useMessages
