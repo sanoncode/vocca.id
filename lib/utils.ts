@@ -1,3 +1,4 @@
+import { languageMap } from "@/constants/language";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -5,18 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getFlagEmoji(langCode: string): string {
-  const flags: Record<string, string> = {
-    en: "🇺🇸",
-    id: "🇮🇩",
-    ja: "🇯🇵",
-    ko: "🇰🇷",
-    zh: "🇨🇳",
-    de: "🇩🇪",
-    fr: "🇫🇷",
-    es: "🇪🇸"
-  };
-  return flags[langCode.toLowerCase()] || "🌐";
+export function getLangBadge(langCode: string): string {
+
+  return languageMap[langCode].badge
 }
 
 // This check can be removed, it is just for tutorial purposes
