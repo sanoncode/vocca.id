@@ -21,20 +21,18 @@ export async function getMessage(messageId: string) {
   };
 }
 
-export async function getUnTranslatedMessages(
-  roomId: string,
-  targetLang: string,
-) {
+export async function getUnTranslatedMessages(roomId: string, targetLang: string) {
   const supabase = await createClient();
   const { data: messages, error: messagesError } = await supabase
     .from("messages")
     .select(`id,text,original_lang,translations:message_translations(translated_text, target_lang)`)
-    .eq("room_id", roomId)
+    .eq("room_id", roomId);
 
-  return {
-    messages,
-    messagesError,
-  };
+  const untranslated = messages?.filter(
+    (msg) => !msg.translations?.some((t) => t.target_lang === targetLang)
+  );
+
+  return { messages: untranslated, messagesError };
 }
 
 export async function getMembers(roomId: string) {

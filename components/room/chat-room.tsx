@@ -28,7 +28,7 @@ const ChatRoom = ({ roomId }: roomId) => {
 
     useMessages({
       roomId, 
-      currentLang: currentUser?.lang!
+      currentLang: currentUser.lang
     })
 
     const {

@@ -105,9 +105,9 @@ const ChatRoomHeader = ({ roomId, handleLeave }: ChatRoomHeaderProps) => {
       </div>
 
       {/* Right Section: Action Buttons */}
-      {isRoomHost(currentUser?.id) ? (
+      {isRoomHost(currentUser.id) ? (
         <div className="flex items-center gap-2">
-          <ChatRoomInviteButton userId={currentUser?.id} roomId={roomId} />
+          <ChatRoomInviteButton userId={currentUser.id} roomId={roomId} />
           <DeleteButton roomId={roomId} />
         </div>
       ) : (

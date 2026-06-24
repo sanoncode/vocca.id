@@ -13,19 +13,19 @@ const ChatRoomInput = ({roomId }: roomId) => {
     const currentUser = UserStore((state)=>state.currentUser)
     const [input, setInput] = useState<string>('')
 
-    const handleTyping = (e: any) => {
+    const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
 
         setInput(value);
 
-        broadcastUser(roomId, currentUser?.name, "TYPING");
+        broadcastUser(roomId, currentUser.name, "TYPING");
 
         if (typingTimeout.current) {
             clearTimeout(typingTimeout.current);
         }
 
         typingTimeout.current = setTimeout(() => {
-            broadcastUser(roomId, currentUser?.name, "IDLE");
+            broadcastUser(roomId, currentUser.name, "IDLE");
         }, 2000);
     };
 
@@ -37,9 +37,9 @@ const ChatRoomInput = ({roomId }: roomId) => {
 
         const newMessage = {
             roomId: roomId,
-            senderId: currentUser?.id,
+            senderId: currentUser.id,
             text: inputTrimmed,
-            originalLang: currentUser?.lang!,
+            originalLang: currentUser.lang,
         };
 
         await sendMessage(newMessage);

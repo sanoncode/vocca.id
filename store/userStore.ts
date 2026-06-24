@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { CurrentUser } from '@/constants/types/entities'
 
 type UserStore = {
-    currentUser: CurrentUser | null
+    currentUser: CurrentUser
     setCurrentUser: (currentUser: CurrentUser) => void
 }
 

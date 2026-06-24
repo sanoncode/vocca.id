@@ -1,4 +1,3 @@
-import { ChatRoomContentProps } from "@/constants/types/props";
 import React, { useEffect, useRef } from "react";
 import ChatRoomBubble from "./chat-room-bubble";
 import ChatStore from "@/store/messageStore";
@@ -30,7 +29,7 @@ const ChatRoomContent = () => {
       className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide"
     >
       {messages.map((msg) => {
-        const isMe = msg.sender_id === currentUser?.id;
+        const isMe = msg.sender_id === currentUser.id;
         return (
           <ChatRoomBubble
             key={msg.id}

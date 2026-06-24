@@ -11,13 +11,12 @@ const supabase = createClient();
 export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
   const user = await getCurrentUser();
   const currentUserId = user?.id ?? null;
-  
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("name,avatar_url,email")
     .eq("id", currentUserId)
-    .single()
-
+    .single();
 
   if (!currentUserId) {
     return {
@@ -27,8 +26,13 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
       avatars: [],
       joined: false,
       created_by: null,
-      currentUser: null,
-      invitationId: null
+      currentUser: {
+        id: null,
+        name: null,
+        email: null,
+        lang: null,
+      },
+      invitationId: null,
     };
   }
 
@@ -42,15 +46,19 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     return {
       roomTitle: "",
       roomHost: "",
-      roomNotFound: roomError.message.includes('invalid'),
+      roomNotFound: roomError.message.includes("invalid"),
       avatars: [],
       joined: false,
       created_by: null,
-      currentUser: null,
-      invitationId: null
-    }
+      currentUser: {
+        id: null,
+        name: null,
+        email: null,
+        lang: null,
+      },
+      invitationId: null,
+    };
   }
-
 
   // 2. Ambil avatar member
   const { data: members, error: membersError } = await supabase
@@ -62,7 +70,9 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
   if (membersError) throw membersError;
 
   const avatars: Avatar[] =
-    members?.map((member) => Object.assign({ ...member.profiles, lang_code: member.language })) ?? [];
+    members?.map((member) =>
+      Object.assign({ ...member.profiles, lang_code: member.language }),
+    ) ?? [];
 
   const { data: membership, error: membershipError } = await supabase
     .from("room_members")
@@ -73,7 +83,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
 
   if (membershipError) throw membershipError;
 
-    const { data: invitation, error: invitationError } = await supabase
+  const { data: invitation, error: invitationError } = await supabase
     .from("room_invitations")
     .select("id")
     .eq("room_id", roomId)
@@ -82,15 +92,13 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
 
   if (invitationError) throw invitationError;
 
-    
-    const currentUser = {
+  const currentUser = {
     id: currentUserId,
     name: profile?.name,
     avatar_url: profile?.avatar_url,
     email: profile?.email,
-    lang: membership?.language
-  }
-
+    lang: membership?.language,
+  };
 
   return {
     roomTitle: preview[0].room_title,
@@ -100,7 +108,7 @@ export async function getRoomData(roomId: string): Promise<RoomDataResponse> {
     joined: !!membership,
     created_by: preview[0].room_created_by_name,
     currentUser: currentUser,
-    invitationId: invitation?.id
+    invitationId: invitation?.id,
   };
 }
 
@@ -145,12 +153,11 @@ export async function createRoom(params: { roomName: string; lang: string }) {
 }
 
 export async function deleteRoom(roomId: string) {
-
   const { data: room, error } = await supabase
-    .from('rooms')
+    .from("rooms")
     .delete()
     .eq("id", roomId)
-    .select()
+    .select();
 
   if (error) {
     console.error("❌ SUPABASE DELETE ERROR DETECTED:", error);
@@ -161,22 +168,22 @@ export async function deleteRoom(roomId: string) {
   return room;
 }
 
-export async function leaveRoom(roomId: string, userId: string | null | undefined) {
-
+export async function leaveRoom(
+  roomId: string,
+  userId: string | null | undefined,
+) {
   const { data: room, error } = await supabase
-    .from('room_members')
+    .from("room_members")
     .delete()
     .eq("room_id", roomId)
     .eq("user_id", userId)
-    .select()
+    .select();
 
-    const { error: invitationError } = await supabase
-    .from('room_invitations')
+  const { error: invitationError } = await supabase
+    .from("room_invitations")
     .delete()
     .eq("room_id", roomId)
-    .eq("invited_user_id", userId)
-   
-
+    .eq("invited_user_id", userId);
 
   if (error && invitationError) {
     console.error("❌ SUPABASE DELETE ERROR DETECTED:", error);
@@ -219,15 +226,14 @@ export async function sendInvitations(params: {
 }) {
   const { roomId, emails, userId } = params;
 
-  
   const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, email")
-      .in("email", emails);
+    .from("profiles")
+    .select("id, email")
+    .in("email", emails);
 
   const profileMap = new Map(
-    profiles?.map((profile)=>[profile.email.toLowerCase(), profile.id])
-  )
+    profiles?.map((profile) => [profile.email.toLowerCase(), profile.id]),
+  );
 
   const { data, error } = await supabase
     .from("room_invitations")
@@ -236,32 +242,33 @@ export async function sendInvitations(params: {
         room_id: roomId,
         invited_email: email,
         invited_user_id: profileMap.get(email.toLowerCase()) ?? null,
-        invited_by: userId
-      }))
+        invited_by: userId,
+      })),
     )
-    .select()
+    .select();
 
-   
   if (error) throw error;
   if (!data) return;
-  return data
+  return data;
 }
 
-export async function acceptInvitations(params:{invitationId: string | null | undefined, lang: string}){
-
-  const { invitationId, lang} = params
+export async function acceptInvitations(params: {
+  invitationId: string | null | undefined;
+  lang: string;
+}) {
+  const { invitationId, lang } = params;
 
   const { data: invitation, error } = await supabase.rpc(
-  "accept_room_invitation",
-  {
-    invitation_id: invitationId,
-    user_language: lang,
-  }
-);
+    "accept_room_invitation",
+    {
+      invitation_id: invitationId,
+      user_language: lang,
+    },
+  );
 
   if (error) throw error;
 
-  return invitation
+  return invitation;
 }
 
 export async function addMember(params: {
@@ -277,4 +284,3 @@ export async function addMember(params: {
   });
   if (error) throw error;
 }
-

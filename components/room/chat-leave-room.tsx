@@ -12,7 +12,6 @@ import {
 
 import { LeaveButtonProps } from "@/constants/types/props";
 import { broadcastUser } from "@/services/supabase/client/chat-room-realtime";
-import { leaveRoom } from "@/services/supabase/client/chat-room-services";
 import UserStore from "@/store/userStore";
 import { Loader2, SquareArrowRightExit } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -28,8 +27,8 @@ const ChatLeaveRoomButton = ({ roomId, handleLeave }: LeaveButtonProps) => {
 
     const leaveRoom = async () => {
         setLeaveLoading(true)
-        await handleLeave()
-        await broadcastUser(roomId, currentUser?.name, 'LEAVE')
+        handleLeave()
+        await broadcastUser(roomId, currentUser.name, 'LEAVE')
         setLeaveLoading(false)
         setOpen(false)
         router.push('/room')

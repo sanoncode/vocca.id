@@ -1,10 +1,9 @@
-import { RoomData } from '@/constants/types/entities'
 import { fetchCatchUpTranslateAPI } from '@/services/api/translate'
 import { broadcastUser, subscribeToRoomMember } from '@/services/supabase/client/chat-room-realtime'
 import { acceptInvitations, getRoomData, leaveRoom } from '@/services/supabase/client/chat-room-services'
 import RoomStore from '@/store/roomStore'
 import UserStore from '@/store/userStore'
-import React, { useEffect, useState } from 'react'
+import { useEffect} from 'react'
 import { useShallow } from 'zustand/react/shallow'
 
 const useRoom = (roomId: string) => {
@@ -40,17 +39,17 @@ const useRoom = (roomId: string) => {
             title: roomTitle,
             host: roomHost,
             createdBy: created_by,
-            invitationId: invitationId!,
+            invitationId: invitationId,
             avatars: avatars,
             notFound: roomNotFound,
         });
-        setCurrentUser(currentUser!)
+        setCurrentUser(currentUser)
 
         setJoined(joined);
     };
 
     const handleJoin = async () => {
-        if (!lang || !currentUser?.id) return;
+        if (!lang || !currentUser.id) return;
 
         setJoinedLoading(true);
 
@@ -61,7 +60,7 @@ const useRoom = (roomId: string) => {
 
         await broadcastUser(
             roomId,
-            currentUser?.name,
+            currentUser.name,
             "JOIN"
         );
         await fetchCatchUpTranslateAPI(roomId, lang)
@@ -73,9 +72,9 @@ const useRoom = (roomId: string) => {
 
     const handleLeave = async () => {
         
-        const result = await leaveRoom(roomId, currentUser?.id)
+        const result = await leaveRoom(roomId, currentUser.id)
         if (result) {
-            broadcastUser(roomId, currentUser?.name,'LEAVE');
+            broadcastUser(roomId, currentUser.name,'LEAVE');
             await initializeRoom();
             return
         }
@@ -90,7 +89,7 @@ const useRoom = (roomId: string) => {
         });
 
         return () => unsubscribeRoomMember()
-    },[roomId, joined, currentUser?.lang])
+    },[roomId, joined, currentUser.lang])
 
     useEffect(() => {
         initializeRoom();

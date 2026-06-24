@@ -34,6 +34,6 @@ export type RoomDataResponse = {
       avatars: Avatar[];
       joined: boolean;
       created_by: string | null;
-      currentUser: CurrentUser | null
-      invitationId?: string | null
+      currentUser: CurrentUser
+      invitationId: string | null
 }

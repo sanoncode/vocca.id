@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
     const { messageId, roomId, catchUpLang } = body;
 
     if (roomId && catchUpLang) {
-      console.log(`[CATCH-UP] Processing room: ${roomId} To Lang: ${catchUpLang}`);
+      console.log(
+        `[CATCH-UP] Processing room: ${roomId} To Lang: ${catchUpLang}`,
+      );
       const { messages, messagesError } = await getUnTranslatedMessages(
         roomId,
         catchUpLang,
@@ -27,19 +29,36 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, translated: 0 });
       }
 
+      const BATCH_SIZE = 5;
 
-      const promises = messages.map((message) =>
-        getTranslated({
-          text: message.text,
-          originalLang: message.original_lang,
-          targetLang: catchUpLang,
-          messageId: message.id,
-        }),
-      );
+      for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+        const batch = messages.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((message) =>
+            getTranslated({
+              text: message.text,
+              originalLang: message.original_lang,
+              targetLang: catchUpLang,
+              messageId: message.id,
+            }),
+          ),
+        );
 
-      await Promise.all(promises);
+        results.forEach((r, idx) => {
+          if (r.status === "rejected") {
+            console.error(
+              `Failed to translate message ${batch[idx].id}:`,
+              r.reason,
+            );
+            // optional: push ke retry queue / log ke monitoring
+          }
+        });
+      }
 
-      return NextResponse.json({ success: true, mode: "catchup", translated: promises.length })
+      return NextResponse.json({
+        success: true,
+        mode: "catchup",
+      });
     }
 
     if (messageId) {
@@ -55,16 +74,16 @@ export async function POST(request: NextRequest) {
 
       const { members, membersError } = await getMembers(message?.room_id);
 
-            if (membersError) {
-              throw membersError;
-            }
+      if (membersError) {
+        throw membersError;
+      }
 
-            if (!members) {
-              return NextResponse.json({
-                success: true,
-                translated: 0,
-              });
-            }
+      if (!members) {
+        return NextResponse.json({
+          success: true,
+          translated: 0,
+        });
+      }
 
       const uniqueLangs = await getFilterLang(members, message);
 
@@ -78,10 +97,17 @@ export async function POST(request: NextRequest) {
       );
       await Promise.all(promises);
 
-      return NextResponse.json({ success: true, mode: "normal", translated: uniqueLangs.length })
+      return NextResponse.json({
+        success: true,
+        mode: "normal",
+        translated: uniqueLangs.length,
+      });
     }
 
-   return NextResponse.json({ error: "Invalid payload structure" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid payload structure" },
+      { status: 400 },
+    );
   } catch (error) {
     console.error("Translation error:", error);
 
